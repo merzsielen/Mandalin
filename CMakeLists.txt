@@ -7,6 +7,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(BASE_SRCS
+    "src/rendering/camera.cpp"
+    "src/rendering/camera.h"
+    "src/util/geometry.cpp"
+    "src/util/geometry.h"
     "src/main.cpp"
 )
 
