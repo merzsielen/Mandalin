@@ -14,7 +14,6 @@
 
 namespace Mandalin
 {
-
 	class Camera
 	{
 	private:
