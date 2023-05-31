@@ -17,4 +17,4 @@
  such as vowel or consonant harmony, ergativity, and topic-
  prominence.
 
-* ["Computational Approaches to the Study of Language Change"](https://langev.com/pdf/baker08languageChange.pdf)
+* ["Computational Approaches to the Study of Language Change"](https://langev.com/pdf/baker08languageChange.pdf) by Adam Baker of the University of Arizona
