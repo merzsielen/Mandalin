@@ -8,6 +8,17 @@
  biomes, and various features which inform the evolution of
  peoples and cultures across the globe.
 
+ We want to avoid creating another game in which the central
+ goal is to craft the most efficient engine of production,
+ the pitfall of most 4X games. If a player wants to command a few
+ steppe nomads on the fringes of a larger empire, we want them
+ to be able to do so, to enjoy doing so. Of course, this shouldn't
+ come at the expense of the enjoyment of those who wish to play
+ expansive empires. In *Mandalin*, it will just be much harder to
+ build China or Rome. Furthermore, we will be motivated by a
+ certain mantra imported from the *Dwarf Fortress* community:
+ losing should be fun.
+
 ## Philosophy
  *Mandalin* is first and foremost intended as a simulator
  of history. This is an impossible task.
@@ -113,3 +124,5 @@
  stateless societies; in addition, sub-states and states must
  exist along a spectrum.
 
+ Sub-state systems will be called societies and exist largely
+ parallel to states.

@@ -38,6 +38,7 @@ namespace Mandalin
 	{
 		// The indices of the six neighbors each hex
 		// has (or five, if a pentagon).
+		bool			pentagon;
 		unsigned int	neighbors[6];
 	};
 
