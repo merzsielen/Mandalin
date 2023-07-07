@@ -13,11 +13,11 @@ namespace Mandalin
 		tiles we send to the renderer each frame. They
 		will *only* contain the vertex data of hexes.
 	*/
-	#define CHUNKSIZE 1000; // This is currently arbitrary.
+	#define CHUNKSIZE 12000; // This is currently arbitrary.
 	struct Chunk
 	{
 		unsigned int	index;
-		glm::vec3 vertices[CHUNKSIZE];
+		glm::vec3		vertices[CHUNKSIZE];
 	};
 
 	/*-------------------------------------------------*/

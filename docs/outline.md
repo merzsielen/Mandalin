@@ -122,7 +122,45 @@
  neat as we might like. Thus, we must define a set of rules
  by which substate systems operate both in states and in
  stateless societies; in addition, sub-states and states must
- exist along a spectrum.
+ exist along a spectrum. There will be two main forms of
+ sub-state systems: identities and societies.
 
- Sub-state systems will be called societies and exist largely
- parallel to states.
+ Identities exist largely parallel to states. They take
+ two primary forms: elementary and synthetic. Elementary
+ identities include linguistic, religious, and regional
+ identities which combine together to form synthetic
+ identities, what we often call ethnic or cultural
+ identities; for example, a peoples who exist across a
+ contiguous space whose languages are sufficiently similar
+ and who all practice the same faith are likely to form some
+ collective identity, albeit a weaker one than those who
+ just share the same religion or speak the same language.
+
+ Each identity is spread over a certain area (containing
+ certain hexes) and has on each hex an associated power,
+ indicating how strongly this identity is felt by those
+ living there, and a percentage, indicating the percentage
+ of the population which holds this identity. The
+ percentages of all the identities in a hex do not
+ necessarily add up to one hundred percent, even if they
+ are of the same type. That is, there may exist a linguistic
+ identity A and B which both include 60% of a particular
+ hex; this just means that some number of the people in this
+ hex are bilingual. Similarly, people are perfectly capable
+ of holding two distinct religious identities (take Japan
+ as an example, where Shinto and Buddhism coexist, albeit
+ often forming a sort of synthetic identity between
+ themselves). Similarly, two regional identities may
+ overlap or one may contain another; the people of
+ Sussex can identify with Sussex just as they identify with
+ England more broadly.
+
+ Societies, on the other hand, are a bit more complex,
+ dictating, in part, the way that populations move and
+ how they extract resources from the land. Each society
+ has a "way of life" which is classified as hunter-gatherer,
+ pastoralist, peripatetic, or agriculturalist. These
+ determine, in part, the carrying capacity of the land,
+ influencing how populations grow across certain hexes.
+ In addition, societies can be settled, partly nomadic, or
+ nomadic, affecting how they move around a given territory.

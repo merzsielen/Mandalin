@@ -10,3 +10,7 @@
  eventually going to add multiplayer support, so the way
  we approach rendering now will have repercussions down the
  line.
+
+## Temporary Notes
+ * Different shader batches for different lenses
+ (geography, political, ethnicity, religion, etc.)
