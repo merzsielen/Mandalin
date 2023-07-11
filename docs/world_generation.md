@@ -18,7 +18,8 @@
  finishing with one final truncation, we end up with a world that
  is arbitrarily large.
 
- ![](https://upload.wikimedia.org/wikipedia/commons/e/e7/G%C3%A9ode_V_3_1_duale.gif)
+ <p align="center"><img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/G%C3%A9ode_V_3_1_duale.gif"
+ alt="A hex-tiled sphere rotating in place."></p>
 
  We have to be smart about our implementation of this as we want
  it to be computationally efficient while also making it easy to
