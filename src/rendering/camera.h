@@ -20,9 +20,9 @@ namespace Mandalin
 		/*-----------------------------------------------*/
 		/* Position, Rotation, & Zoom */
 		/*-----------------------------------------------*/
-		glm::vec3		position;
-		Quaternion		rotation;
-		float			zoom;
+		glm::vec3			position;
+		Quaternion			rotation;
+		float				zoom;
 
 		/*-----------------------------------------------*/
 		/* View */

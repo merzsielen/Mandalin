@@ -50,7 +50,6 @@ namespace Mandalin
 		for multiple planets, just in case that becomes
 		a thing we want to play with later.
 
-
 	*/
 	class Planet
 	{
