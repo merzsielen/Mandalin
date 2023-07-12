@@ -45,9 +45,9 @@ namespace Mandalin
 		twelve making up its sides, since each hex is
 		really more like a hex-shaped column extending
 		down into the planet), we need to limit the
-		number of hexes per chunk to around 1,000 in
-		order to avoid going over our ~20,000 triangles-
-		per-batch (soft) limit.
+		number of hexes per chunk to around 100 in
+		order to avoid going over our ~1,800 triangles-
+		per-chunk (soft) limit.
 
 		Each hex will have to include its chunk, its
 		index in the chunk, and the number of triangles
@@ -57,8 +57,8 @@ namespace Mandalin
 	*/
 	struct Chunk
 	{
-		static constexpr unsigned int MAXHEXES = 1000;
-		static constexpr unsigned int MAXTRIS = 18000;
+		static constexpr unsigned int MAXHEXES = 100;
+		static constexpr unsigned int MAXTRIS = 1800;
 
 		unsigned int	index;
 

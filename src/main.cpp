@@ -17,31 +17,6 @@
 
 void main()
 {
-	srand(time(NULL));
-
-	Mandalin::Polyhedron* polyhedron = new Mandalin::Polyhedron();
-	
-	polyhedron->Triakis();
-
-	std::vector<Mandalin::Triangle> triangles;
-
-	for (int i = 0; i < polyhedron->faces.size(); i++)
-	{
-		Mandalin::Triangle t;
-
-		glm::vec3 a = polyhedron->vertices[polyhedron->faces[i].vertices[0]];
-		glm::vec3 b = polyhedron->vertices[polyhedron->faces[i].vertices[1]];
-		glm::vec3 c = polyhedron->vertices[polyhedron->faces[i].vertices[2]];
-
-		glm::vec3 color = glm::vec3((rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f);
-
-		t.a = { a.x, a.y, a.z, color.r, color.g, color.b, 1.0f };
-		t.b = { b.x, b.y, b.z, color.r, color.g, color.b, 1.0f };
-		t.c = { c.x, c.y, c.z, color.r, color.g, color.b, 1.0f };
-
-		triangles.push_back(t);
-	}
-
 	/*
 		Let's get some meta-details straight.
 		Mandalin version, OpenGL version, etc.
@@ -104,6 +79,7 @@ void main()
 	*/
 	Mandalin::Camera* camera = new Mandalin::Camera({ 0, 0, 0 }, { 1, 0, 0, 0 }, 1.0f, window);
 	Mandalin::Renderer* renderer = new Mandalin::Renderer(camera);
+	Mandalin::Planet* planet = new Mandalin::Planet(6);
 
 	/*
 		And now we can run the loop.
@@ -117,14 +93,15 @@ void main()
 
 		camera->Update(deltaTime);
 
-		// renderer->Render();// planet);
-		renderer->Render(triangles);
+		renderer->Render(planet);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
 	std::cout << "Shutting down Mandalin. Have a wonderful day!" << std::endl;
+
+	delete planet;
 	delete renderer;
 	delete camera;
 }

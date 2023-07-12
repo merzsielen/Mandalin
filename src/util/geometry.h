@@ -14,61 +14,22 @@
 namespace Mandalin
 {
 	/*-----------------------------------------------*/
-	/* Face */
+	/* TriFace */
 	/*-----------------------------------------------*/
-	struct Face
+	struct TriFace
 	{
-		std::vector<unsigned int> vertices;
-	};
+		glm::vec3 vertices[3];
 
-	/*-----------------------------------------------*/
-	/* Edge */
-	/*-----------------------------------------------*/
-	struct Edge
-	{
-		unsigned int a;
-		unsigned int b;
-	};
-
-	/*-----------------------------------------------*/
-	/* Polyhedrons */
-	/*-----------------------------------------------*/
-	struct Polyhedron
-	{
-		/*
-			Verts, Faces, & Edges
-		*/
-		std::vector<glm::vec3>	vertices;
-		std::vector<Face>		faces;
-		std::vector<Edge>		edges;
-
-		/*
-			Center & Midpoint
-		*/
-		glm::vec3 Center(Face face)
+		void Normalize(float n)
 		{
-			glm::vec3 sum = { 0.0f, 0.0f, 0.0f };
-			for (int i = 0; i < face.vertices.size(); i++) sum += vertices[face.vertices[i]];
-			return sum / (float)face.vertices.size();
+			vertices[0] = n * glm::normalize(vertices[0]);
+			vertices[1] = n * glm::normalize(vertices[1]);
+			vertices[2] = n * glm::normalize(vertices[2]);
 		}
-
-		glm::vec3 Midpoint(Edge edge)
-		{
-			return (vertices[edge.a] + vertices[edge.b]) / 2.0f;
-		}
-
-		/*
-			Operator Functions
-		*/
-		void					Triakis(float apex);
-		void					Dual();
-		void					Truncate(float kisApex);
-
-		/*
-			Constructor
-		*/
-		Polyhedron();
 	};
+
+	std::vector<TriFace> Subdivide(std::vector<TriFace> in);
+	std::vector<TriFace> Icosahedron();
 
 	/*-----------------------------------------------*/
 	/* Rays */

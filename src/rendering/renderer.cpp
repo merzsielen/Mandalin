@@ -1,4 +1,5 @@
 #include "renderer.h"
+#include <iostream>
 
 namespace Mandalin
 {
@@ -10,10 +11,15 @@ namespace Mandalin
 		shaders[0].Use();
 		shaders[0].SetMatrix("MVP", camera->GetViewProjection());
 
-		glBindVertexArray(VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, in.size() * sizeof(Triangle), &in[0]);
-		glDrawElements(GL_TRIANGLES, in.size() * 3, GL_UNSIGNED_INT, nullptr);
+		for (int i = 0; i < in.size(); i += Chunk::MAXTRIS)
+		{
+			unsigned int triCount = std::min(Chunk::MAXTRIS, (unsigned int)in.size() - i);
+
+			glBindVertexArray(VAO);
+			glBindBuffer(GL_ARRAY_BUFFER, VBO);
+			glBufferSubData(GL_ARRAY_BUFFER, 0, triCount * sizeof(Triangle), &in[i]);
+			glDrawElements(GL_TRIANGLES, triCount * 3, GL_UNSIGNED_INT, nullptr);
+		}
 	}
 
 	void Renderer::Render(Planet* planet)

@@ -19,15 +19,14 @@ namespace Mandalin
 	*/
 	struct Hex
 	{
-		// The indices of the six neighbors each hex
-		// has (or five, if a pentagon).
-		bool			pentagon;
-		unsigned int	neighbors[6];
+		// The chunk indices of each neighbor followed by
+		// their indices within that chunk.
+		std::vector<std::pair<unsigned int, unsigned int>>	neighbors;
 
 		// Information about its chunk and its location
 		// within it.
 		unsigned int	chunk;
-		unsigned int	chunkIndex;
+		unsigned int	index;
 	};
 }
 

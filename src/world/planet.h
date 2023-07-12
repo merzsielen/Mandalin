@@ -59,9 +59,7 @@ namespace Mandalin
 		/*---------------------*/
 		/* Geometry Generation */
 		/*---------------------*/
-		Polyhedron					Truncate(Polyhedron in);
-		Polyhedron					Dual(Polyhedron in);
-		void						Chunkify(Polyhedron in);
+		void						Hexify(std::vector<TriFace> in);
 
 		/*---------------------*/
 		/* Constructor         */

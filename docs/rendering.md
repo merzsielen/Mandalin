@@ -23,3 +23,6 @@
 ## Temporary Notes
  * Different shader batches for different lenses
  (geography, political, ethnicity, religion, etc.)
+ * Use the vertex shader to create wave oscillation, idk.
+ vec3 finalPos = pos + (0.1 * normalizedPos * rand) or
+ something.
