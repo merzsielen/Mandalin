@@ -9,12 +9,39 @@
 #include <iomanip>
 #include <iostream>
 
-#include "rendering/camera.h"
+#include "world/chunk.h"
+#include "util/geometry.h"
+#include "rendering/renderer.h"
 
 #define VERSION 0.01
 
 void main()
 {
+	srand(time(NULL));
+
+	Mandalin::Polyhedron* polyhedron = new Mandalin::Polyhedron();
+	
+	polyhedron->Triakis();
+
+	std::vector<Mandalin::Triangle> triangles;
+
+	for (int i = 0; i < polyhedron->faces.size(); i++)
+	{
+		Mandalin::Triangle t;
+
+		glm::vec3 a = polyhedron->vertices[polyhedron->faces[i].vertices[0]];
+		glm::vec3 b = polyhedron->vertices[polyhedron->faces[i].vertices[1]];
+		glm::vec3 c = polyhedron->vertices[polyhedron->faces[i].vertices[2]];
+
+		glm::vec3 color = glm::vec3((rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f);
+
+		t.a = { a.x, a.y, a.z, color.r, color.g, color.b, 1.0f };
+		t.b = { b.x, b.y, b.z, color.r, color.g, color.b, 1.0f };
+		t.c = { c.x, c.y, c.z, color.r, color.g, color.b, 1.0f };
+
+		triangles.push_back(t);
+	}
+
 	/*
 		Let's get some meta-details straight.
 		Mandalin version, OpenGL version, etc.
@@ -24,8 +51,80 @@ void main()
 	std::cout << "Running Mandalin, version: " + o.str() + "." << std::endl;
 
 	/*
+		Now we go through the process of initializing OpenGL,
+		GLAD, GLFW, GLADOS, GLERP, GLEW, whatever....
+	*/
+	int windowWidth = 1800;
+	int windowHeight = 800;
+	std::string title = "Mandalin";
+
+	GLFWwindow* window;
+
+	if (!glfwInit())
+	{
+		std::cout << "Failed to initialize GLFW." << std::endl;
+		return;
+	}
+
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+	glfwWindowHintString(GLFW_X11_CLASS_NAME, "OpenGL");
+	glfwWindowHintString(GLFW_X11_INSTANCE_NAME, "OpenGL");
+
+	window = glfwCreateWindow(windowWidth, windowHeight, title.c_str(), NULL, NULL);
+
+	if (!window)
+	{
+		glfwTerminate();
+		std::cout << "Failed to create Opengl Window." << std::endl;
+		return;
+	}
+
+	glfwMakeContextCurrent(window);
+
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		std::cout << "Failed to initialize GLAD" << std::endl;
+		return;
+	}
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glCullFace(GL_BACK);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
+	/*
 		Now we're going to fire up rendering:
 		camera, renderer, etc.
 	*/
-	Mandalin::Camera* camera = new Mandalin::Camera({ 0, 0, 0 }, { 1, 0, 0, 0 }, 1.0f);
+	Mandalin::Camera* camera = new Mandalin::Camera({ 0, 0, 0 }, { 1, 0, 0, 0 }, 1.0f, window);
+	Mandalin::Renderer* renderer = new Mandalin::Renderer(camera);
+
+	/*
+		And now we can run the loop.
+	*/
+	float lastTime = 0.0f;
+
+	while (!glfwWindowShouldClose(window))
+	{
+		float deltaTime = glfwGetTime() - lastTime;
+		lastTime = glfwGetTime();
+
+		camera->Update(deltaTime);
+
+		// renderer->Render();// planet);
+		renderer->Render(triangles);
+
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
+
+	std::cout << "Shutting down Mandalin. Have a wonderful day!" << std::endl;
+	delete renderer;
+	delete camera;
 }

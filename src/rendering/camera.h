@@ -9,11 +9,18 @@
 	orientation of the camera.
 */
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
+
 #include "../util/geometry.h"
 
 namespace Mandalin
 {
+	enum class Lens { orthographic, perspective };
+
 	class Camera
 	{
 	private:
@@ -25,11 +32,23 @@ namespace Mandalin
 		float				zoom;
 
 		/*-----------------------------------------------*/
-		/* View */
+		/* Window, FOV, Clip */
 		/*-----------------------------------------------*/
-		int					viewDepth = 15000;
-		int					viewWidth = 1920;
-		int					viewHeight = 1080;
+		GLFWwindow*			window;
+		int					windowWidth;
+		int					windowHeight;
+
+		float				fov = 180.0f;
+		float				nearClip = 0.01f;
+		float				farClip = 15000.0f;
+
+		/*-----------------------------------------------*/
+		/* Projection & View */
+		/*-----------------------------------------------*/
+		Lens				lens = Lens::perspective;
+
+		glm::mat4			view;
+		glm::mat4			projection;
 
 		/*-----------------------------------------------*/
 		/* Background Color */
@@ -40,45 +59,62 @@ namespace Mandalin
 		/*-----------------------------------------------*/
 		/* Position & Rotation Functions */
 		/*-----------------------------------------------*/
-		glm::vec3			Position() { return position; }
-		Quaternion			Rotation() { return rotation; }
-		float				Zoom() { return zoom; }
+		glm::vec3			GetPosition() { return position; }
+		Quaternion			GetRotation() { return rotation; }
+		float				GetZoom() { return zoom; }
 
-		void				Position(glm::vec3 pos) { position = pos; }
-		void				Rotation(Quaternion quat) { rotation = quat; }
-		void				Zoom(float z) { zoom = z; }
+		void				SetPosition(glm::vec3 pos) { position = pos; }
+		void				SetRotation(Quaternion quat) { rotation = quat; }
+		void				SetZoom(float z) { zoom = z; }
 
 		void				UpdateRotation() { NormalizeQuaternion(rotation); }
 		glm::vec3			CameraForward() { return Rotate({ 0.0f, 0.0f, -1.0f }, rotation); }
 		glm::vec3			CameraUp() { return Rotate({ 0.0f, 1.0f, 0.0f }, rotation); }
 
 		/*-----------------------------------------------*/
-		/* View Functions */
+		/* Window & Clip Functions */
 		/*-----------------------------------------------*/
-		int					ViewDepth() { return viewDepth; }
-		int					ViewWidth() { return viewWidth; }
-		int					ViewHeight() { return viewHeight; }
+		int					GetWindowWidth() { return windowWidth; }
+		int					GetWindowHeight() { return windowHeight; }
 
-		void				ViewDepth(int depth) { viewDepth = depth; }
-		void				ViewWidth(int width) { viewWidth = width; }
-		void				ViewHeight(int height) { viewHeight = height; }
+		void				SetWindowWidth(int width) { windowWidth = width; }
+		void				SetWindowHeight(int height) { windowHeight = height; }
+
+		/*-----------------------------------------------*/
+		/* Projection & View Functions */
+		/*-----------------------------------------------*/
+		Lens				GetLens() { return lens; }
+		
+		void				SetLens(Lens l) { lens = l; }
+
+		glm::mat4			GetViewProjection() { return projection * view; }
+
+		void				UpdateView();
+		void				UpdateProjection();
 
 		/*-----------------------------------------------*/
 		/* Background Color Functions */
 		/*-----------------------------------------------*/
-		glm::vec4			BackgroundColor() { return backgroundColor; }
+		glm::vec4			GetBackgroundColor() { return backgroundColor; }
 
-		void				BackgroundColor(glm::vec4 color) { backgroundColor = color; }
-
-		/*-----------------------------------------------*/
-		/* Constructor */
-		/*-----------------------------------------------*/
-		Camera(glm::vec3 position, Quaternion rotation, float zoom);
+		void				SetBackgroundColor(glm::vec4 color) { backgroundColor = color; }
 
 		/*-----------------------------------------------*/
-		/* Termination */
+		/* Temporary Input Handling */
 		/*-----------------------------------------------*/
-		void				Terminate();
+		void				HandleInput(float deltaTime);
+
+		/*-----------------------------------------------*/
+		/* Update (Main Loop) */
+		/*-----------------------------------------------*/
+		void				Update(float deltaTime);
+
+		/*-----------------------------------------------*/
+		/* Constructor & Deconstructor */
+		/*-----------------------------------------------*/
+		Camera(glm::vec3 position, Quaternion rotation, float zoom, GLFWwindow* window);
+
+		~Camera();
 	};
 }
 

@@ -14,6 +14,63 @@
 namespace Mandalin
 {
 	/*-----------------------------------------------*/
+	/* Face */
+	/*-----------------------------------------------*/
+	struct Face
+	{
+		std::vector<unsigned int> vertices;
+	};
+
+	/*-----------------------------------------------*/
+	/* Edge */
+	/*-----------------------------------------------*/
+	struct Edge
+	{
+		unsigned int a;
+		unsigned int b;
+	};
+
+	/*-----------------------------------------------*/
+	/* Polyhedrons */
+	/*-----------------------------------------------*/
+	struct Polyhedron
+	{
+		/*
+			Verts, Faces, & Edges
+		*/
+		std::vector<glm::vec3>	vertices;
+		std::vector<Face>		faces;
+		std::vector<Edge>		edges;
+
+		/*
+			Center & Midpoint
+		*/
+		glm::vec3 Center(Face face)
+		{
+			glm::vec3 sum = { 0.0f, 0.0f, 0.0f };
+			for (int i = 0; i < face.vertices.size(); i++) sum += vertices[face.vertices[i]];
+			return sum / (float)face.vertices.size();
+		}
+
+		glm::vec3 Midpoint(Edge edge)
+		{
+			return (vertices[edge.a] + vertices[edge.b]) / 2.0f;
+		}
+
+		/*
+			Operator Functions
+		*/
+		void					Triakis(float apex);
+		void					Dual();
+		void					Truncate(float kisApex);
+
+		/*
+			Constructor
+		*/
+		Polyhedron();
+	};
+
+	/*-----------------------------------------------*/
 	/* Rays */
 	/*-----------------------------------------------*/
 	struct Ray

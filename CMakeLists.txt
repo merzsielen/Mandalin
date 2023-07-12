@@ -9,10 +9,17 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(BASE_SRCS
     "src/rendering/camera.cpp"
     "src/rendering/camera.h"
+    "src/rendering/renderer.cpp"
+    "src/rendering/renderer.h"
+    "src/rendering/shader.cpp"
+    "src/rendering/shader.h"
     "src/util/geometry.cpp"
     "src/util/geometry.h"
+    "src/world/chunk.h"
+    "src/world/hex.h"
+    "src/world/planet.h"
     "src/main.cpp"
-)
+ "src/world/planet.cpp")
 
 # Add source to this project's executable.
 add_executable (mandalin ${BASE_SRCS})

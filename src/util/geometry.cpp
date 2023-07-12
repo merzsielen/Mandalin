@@ -3,9 +3,99 @@
 #include <corecrt_math_defines.h>
 #include <glm/gtx/norm.hpp>
 #include <algorithm>
+#include <iostream>
 
 namespace Mandalin
 {
+	/*-----------------------------------------------*/
+	/* Polyhedron Functions */
+	/*-----------------------------------------------*/
+	void Polyhedron::Triakis(float apex)
+	{
+		/*
+			Each face becomes a pyramid.
+		*/
+
+		std::vector<Face> newFaces;
+
+		for (int i = 0; i < faces.size(); i++)
+		{
+			vertices.push_back(Center(faces[i]) * apex);
+			
+
+			for (int j = 0; j < faces[i].vertices.size(); j++)
+			{
+				Edge e = { faces[i].vertices[j], vertices.size() - 1 };
+				edges.push_back(e);
+
+				Face f = { {	faces[i].vertices[j],
+								(unsigned int)(vertices.size() - 1),
+								faces[i].vertices[(j + 1) % faces[i].vertices.size()]	} };
+				newFaces.push_back(f);
+			}
+		}
+
+		faces = newFaces;
+	}
+
+	void Polyhedron::Dual()
+	{
+		/*
+			Each face becomes a vertex.
+			Each vertex becomes a face.
+		*/
+
+		std::vector<glm::vec3> newVerts;
+
+		for (int i = 0; i < faces.size(); i++)
+		{
+			newVerts.push_back(Center(faces[i]));
+		}
+	}
+
+	void Polyhedron::Truncate(float kisApex)
+	{
+		Dual();
+		Triakis(kisApex);
+		Dual();
+	}
+
+	Polyhedron::Polyhedron()
+	{
+		/*
+			In a better world, I wouldn't assume that
+			we are only ever going to use this to
+			create planets, but alas this is not a
+			better world.
+		*/
+		float x = 0.525731112119133606f;
+		float z = 0.850650808352039932f;
+		float n = 0.0f;
+
+		vertices =
+		{
+			{ -x, n, z }, { x, n, z }, { -x, n, -z }, { x, n, -z },
+			{ n, z, x }, { n, z, -x }, { n, -z, x }, { n, -z, -x },
+			{ z, x, n }, { -z, x, n }, { z, -x, n }, { -z, -x, n }
+		};
+
+		faces =
+		{
+			{{ 0, 4, 1 }}, {{ 0, 9, 4 }}, {{ 9, 5, 4 }}, {{ 4, 5, 8 }}, {{ 4, 8, 1 }},
+			{{ 8, 10, 1 }}, {{ 8, 3, 10 }}, {{ 5, 3, 8 }}, {{ 5, 2, 3 }}, {{ 2, 7, 3 }},
+			{{ 7, 10, 3 }},{{ 7, 6, 10 }}, {{ 7, 11, 6 }}, {{ 11, 0, 6 }}, {{ 0, 1, 6 }},
+			{{ 6, 1, 10 }}, {{ 9, 0, 11 }}, {{ 9, 11, 2 }}, {{ 9, 2, 5 }}, {{ 7, 2, 11 }}
+		};
+
+		edges =
+		{
+			/* 1 */ { 0, 1 }, { 0, 4 }, { 1, 4 }, /* 2 */ { 0, 9 }, { 4, 9 }, /* 3 */ { 4, 5 }, { 5, 9 }, /* 4 */ { 4, 8 }, { 5, 8 }, /* 5 */ { 1, 8 },
+			/* 6 */ { 1, 10 }, { 8, 10 }, /* 7 */ { 3, 8 }, { 3, 10 }, /* 8 */ { 3, 5 }, /* 9 */ { 2, 3 }, { 2, 5 }, /* 10 */ { 2, 7 }, { 3, 7 },
+			/* 11 */ { 7, 10 }, /* 12 */ { 6, 7 }, { 6, 10 }, /* 13 */ { 6, 11 }, { 7, 11 }, /* 14 */ { 0, 6 }, { 0, 11 }, /* 15 */ { 1, 6 },
+			/* 16 */ /* 17 */ { 9, 11 }, /* 18 */ { 2, 9 }, { 2, 11 }, /* 19 */ /* 20 */
+		};
+	}
+
 	/*-----------------------------------------------*/
 	/* Vector Functions */
 	/*-----------------------------------------------*/
