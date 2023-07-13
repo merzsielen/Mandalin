@@ -1,6 +1,8 @@
 #ifndef HEX_H
 #define HEX_H
 
+#include <vector>
+
 namespace Mandalin
 {
 	/*-------------------------------------------------*/
@@ -21,7 +23,7 @@ namespace Mandalin
 	{
 		// The chunk indices of each neighbor followed by
 		// their indices within that chunk.
-		std::vector<std::pair<unsigned int, unsigned int>>	neighbors;
+		// std::vector<std::pair<unsigned int, unsigned int>>	neighbors;
 
 		// Information about its chunk and its location
 		// within it.

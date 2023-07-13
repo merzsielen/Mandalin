@@ -4,6 +4,7 @@
 	The unmoved mover....
 */
 
+#include <chrono>
 #include <string>
 #include <sstream>
 #include <iomanip>
@@ -79,17 +80,31 @@ void main()
 	*/
 	Mandalin::Camera* camera = new Mandalin::Camera({ 0, 0, 0 }, { 1, 0, 0, 0 }, 1.0f, window);
 	Mandalin::Renderer* renderer = new Mandalin::Renderer(camera);
-	Mandalin::Planet* planet = new Mandalin::Planet(6);
+	Mandalin::Planet* planet = new Mandalin::Planet(7);
 
 	/*
 		And now we can run the loop.
 	*/
 	float lastTime = 0.0f;
+	auto start = std::chrono::steady_clock::now();
+	int frameCount = 0;
 
 	while (!glfwWindowShouldClose(window))
 	{
 		float deltaTime = glfwGetTime() - lastTime;
 		lastTime = glfwGetTime();
+
+		frameCount++;
+		auto now = std::chrono::steady_clock::now();
+		auto diff = now - start;
+
+		if (diff >= std::chrono::seconds(1))
+		{
+			start = now;
+			std::cout << "Frame Count: " + std::to_string(frameCount) << std::endl;
+
+			frameCount = 0;
+		}
 
 		camera->Update(deltaTime);
 

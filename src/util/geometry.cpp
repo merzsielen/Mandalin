@@ -7,24 +7,30 @@
 
 namespace Mandalin
 {
-	std::vector<TriFace> Subdivide(std::vector<TriFace> in)
+	void Polyhedron::Subdivide()
 	{
+		vertices *= 2;
+
 		std::vector<TriFace> out;
 
-		for (int i = 0; i < in.size(); i++)
+		for (int i = 0; i < faces.size(); i++)
 		{
-			glm::vec3 a = in[i].vertices[0];
-			glm::vec3 b = in[i].vertices[1];
-			glm::vec3 c = in[i].vertices[2];
+			glm::vec3 a = faces[i].vertices[0];
+			glm::vec3 b = faces[i].vertices[1];
+			glm::vec3 c = faces[i].vertices[2];
 
 			glm::vec3 midAB = (a + b) / 2.0f;
 			glm::vec3 midBC = (b + c) / 2.0f;
 			glm::vec3 midCA = (c + a) / 2.0f;
 
-			TriFace ta = { { a, midAB, midCA } };
-			TriFace tb = { { midAB, b, midBC } };
-			TriFace tc = { { midCA, midBC, c } };
-			TriFace td = { { midAB, midBC, midCA } };
+			unsigned int mABid = (faces[i].vertIDS[0] + faces[i].vertIDS[1]) / 2;
+			unsigned int mBCid = (faces[i].vertIDS[1] + faces[i].vertIDS[2]) / 2;
+			unsigned int mCAid = (faces[i].vertIDS[2] + faces[i].vertIDS[0]) / 2;
+
+			TriFace ta = { { a, midAB, midCA }, { faces[i].vertIDS[0], mABid, mCAid } };
+			TriFace tb = { { midAB, b, midBC }, { mABid, faces[i].vertIDS[1], mBCid } };
+			TriFace tc = { { midCA, midBC, c }, { mCAid, mBCid, faces[i].vertIDS[2] } };
+			TriFace td = { { midAB, midBC, midCA }, { mABid, mBCid, mCAid } };
 
 			ta.Normalize(10.0f);
 			tb.Normalize(10.0f);
@@ -34,23 +40,30 @@ namespace Mandalin
 			out.insert(out.end(), { ta, tb, tc, td });
 		}
 
-		return out;
+		faces = out;
 	}
 
-	std::vector<TriFace> Icosahedron()
+	Polyhedron::Polyhedron(int worldSize)
 	{
+		/*
+			In a better world, I wouldn't assume the only thing we're
+			going to use this for is for world-generation, but alas
+			this is not a better world.
+		*/
+
 		float x = 0.525731112119133606f;
 		float z = 0.850650808352039932f;
 		float n = 0.0f;
 
-		std::vector<glm::vec3> vertices =
+		vertices = 12;
+		std::vector<glm::vec3> icoVertices =
 		{
 			{ -x, n, z }, { x, n, z }, { -x, n, -z }, { x, n, -z },
 			{ n, z, x }, { n, z, -x }, { n, -z, x }, { n, -z, -x },
 			{ z, x, n }, { -z, x, n }, { z, -x, n }, { -z, -x, n }
 		};
 
-		std::vector<std::vector<unsigned int>> faces =
+		std::vector<std::vector<unsigned int>> icoFaces =
 		{
 			{{ 0, 4, 1 }}, {{ 0, 9, 4 }}, {{ 9, 5, 4 }}, {{ 4, 5, 8 }}, {{ 4, 8, 1 }},
 			{{ 8, 10, 1 }}, {{ 8, 3, 10 }}, {{ 5, 3, 8 }}, {{ 5, 2, 3 }}, {{ 2, 7, 3 }},
@@ -58,14 +71,13 @@ namespace Mandalin
 			{{ 6, 1, 10 }}, {{ 9, 0, 11 }}, {{ 9, 11, 2 }}, {{ 9, 2, 5 }}, {{ 7, 2, 11 }}
 		};
 
-		std::vector<TriFace> out;
+		int vertIDSpacer = pow(2, worldSize);
 
-		for (int i = 0; i < faces.size(); i++)
+		for (int i = 0; i < icoFaces.size(); i++)
 		{
-			out.push_back({ vertices[faces[i][0]], vertices[faces[i][1]], vertices[faces[i][2]] });
+			faces.push_back({ { icoVertices[icoFaces[i][0]], icoVertices[icoFaces[i][1]], icoVertices[icoFaces[i][2]] },
+							{ icoFaces[i][0] * vertIDSpacer, icoFaces[i][1] * vertIDSpacer, icoFaces[i][2] * vertIDSpacer } });
 		}
-		
-		return out;
 	}
 
 	/*-----------------------------------------------*/

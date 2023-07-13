@@ -14,11 +14,23 @@
 namespace Mandalin
 {
 	/*-----------------------------------------------*/
+	/* Temporary Node (for World Generation) */
+	/*-----------------------------------------------*/
+	struct TempNode
+	{
+		glm::vec3					vertex;
+		unsigned int				id;
+
+		std::vector<unsigned int>	neighborIDs;
+	};
+
+	/*-----------------------------------------------*/
 	/* TriFace */
 	/*-----------------------------------------------*/
 	struct TriFace
 	{
-		glm::vec3 vertices[3];
+		glm::vec3		vertices[3];
+		unsigned int	vertIDS[3];
 
 		void Normalize(float n)
 		{
@@ -28,8 +40,17 @@ namespace Mandalin
 		}
 	};
 
-	std::vector<TriFace> Subdivide(std::vector<TriFace> in);
-	std::vector<TriFace> Icosahedron();
+	/*-----------------------------------------------*/
+	/* Polyhedron */
+	/*-----------------------------------------------*/
+	struct Polyhedron
+	{
+		unsigned int			vertices;
+		std::vector<TriFace>	faces;
+
+		void					Subdivide();
+		Polyhedron(int worldSize);
+	};
 
 	/*-----------------------------------------------*/
 	/* Rays */

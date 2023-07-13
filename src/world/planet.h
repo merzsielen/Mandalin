@@ -30,19 +30,19 @@ namespace Mandalin
 			use a vector to hold our chunks. This is less
 			than ideal, so we may change this later.
 		*/
-		std::vector<Chunk>			chunks;
+		std::vector<Chunk>		chunks;
 
 		/*-----------------------------------------------*/
 		/* World Generation Options */
 		/*-----------------------------------------------*/
-		unsigned int				worldSize;
+		unsigned int			worldSize;
 
 	public:
 		/*-----------------------------------------------*/
 		/* Chunks, Cont. */
 		/*-----------------------------------------------*/
-		unsigned int				ChunkCount() { return chunks.size(); }
-		Chunk*						GetChunk(unsigned int i) { return &chunks[i]; }
+		unsigned int			ChunkCount() { return chunks.size(); }
+		Chunk*					GetChunk(unsigned int i) { return &chunks[i]; }
 
 		/*-----------------------------------------------*/
 		/* World Generation */
@@ -59,7 +59,7 @@ namespace Mandalin
 		/*---------------------*/
 		/* Geometry Generation */
 		/*---------------------*/
-		void						Hexify(std::vector<TriFace> in);
+		void					Hexify(Polyhedron* polyhedron);
 
 		/*---------------------*/
 		/* Constructor         */
