@@ -9,37 +9,162 @@ namespace Mandalin
 {
 	void Polyhedron::Subdivide()
 	{
-		vertices *= 2;
-
 		std::vector<TriFace> out;
+
+		for (int i = 0; i < vertices.size(); i++)
+		{
+			vertices[i].sharers.clear();
+		}
 
 		for (int i = 0; i < faces.size(); i++)
 		{
-			glm::vec3 a = faces[i].vertices[0];
-			glm::vec3 b = faces[i].vertices[1];
-			glm::vec3 c = faces[i].vertices[2];
+			/*--------------------------------------------*/
+			/* Old Vertices                               */
+			/*--------------------------------------------*/
+			/*
+				First, we grab the indices of the
+				old vertices which aren't going to
+				change.
+			*/
+			unsigned int aI = faces[i].a;
+			unsigned int bI = faces[i].b;
+			unsigned int cI = faces[i].c;
 
-			glm::vec3 midAB = (a + b) / 2.0f;
-			glm::vec3 midBC = (b + c) / 2.0f;
-			glm::vec3 midCA = (c + a) / 2.0f;
+			/*
+				Then, we grab the vertices which also
+				aren't going to change. However, the
+				triangles to which they belong are
+				going to change (sadly).
+			*/
+			PolyVert* a = &vertices[aI];
+			PolyVert* b = &vertices[bI];
+			PolyVert* c = &vertices[cI];
 
-			unsigned int mABid = (faces[i].vertIDS[0] + faces[i].vertIDS[1]) / 2;
-			unsigned int mBCid = (faces[i].vertIDS[1] + faces[i].vertIDS[2]) / 2;
-			unsigned int mCAid = (faces[i].vertIDS[2] + faces[i].vertIDS[0]) / 2;
+			/*--------------------------------------------*/
+			/* New Vertices                               */
+			/*--------------------------------------------*/
+			/*
+				We need to find out where each new
+				vertex will be.
+			*/
+			unsigned int abI, bcI, caI;
 
-			TriFace ta = { { a, midAB, midCA }, { faces[i].vertIDS[0], mABid, mCAid } };
-			TriFace tb = { { midAB, b, midBC }, { mABid, faces[i].vertIDS[1], mBCid } };
-			TriFace tc = { { midCA, midBC, c }, { mCAid, mBCid, faces[i].vertIDS[2] } };
-			TriFace td = { { midAB, midBC, midCA }, { mABid, mBCid, mCAid } };
+			PolyVert midAB = { radius * glm::normalize((a->vertex + b->vertex) / 2.0f), {} };
+			PolyVert midBC = { radius * glm::normalize((b->vertex + c->vertex) / 2.0f), {} };
+			PolyVert midCA = { radius * glm::normalize((c->vertex + a->vertex) / 2.0f), {} };
 
-			ta.Normalize(10.0f);
-			tb.Normalize(10.0f);
-			tc.Normalize(10.0f);
-			td.Normalize(10.0f);
+			/*--------------------------------------------*/
+			/* Finding Triangles                          */
+			/*--------------------------------------------*/
+			/*
+				My brain is a little scattered today
+				bear with me.
+			*/
+			out.push_back({ aI, 0 /* abI */, 0 /* caI */ });
+			out.push_back({ 0 /* abI */, bI, 0 /* bcI */ });
+			out.push_back({ 0 /* caI */, 0 /* bcI */, cI });
+			out.push_back({ 0 /* abI */, 0 /* bcI */, 0 /* caI */ });
 
-			out.insert(out.end(), { ta, tb, tc, td });
+			// You could fit my brain in a thimble.
+			unsigned int taI = out.size() - 4;
+			unsigned int tbI = out.size() - 3;
+			unsigned int tcI = out.size() - 2;
+			unsigned int tdI = out.size() - 1;
+			TriFace* ta = &out[taI];
+			TriFace* tb = &out[tbI];
+			TriFace* tc = &out[tcI];
+			TriFace* td = &out[tdI];
+
+			/*
+				First we're going to add these triangles to
+				the vertices we already have indices for.
+			*/
+			a->sharers.push_back(taI);
+			b->sharers.push_back(tbI);
+			c->sharers.push_back(tcI);
+
+			/*
+				Now we go through and find all the indices
+				for the vertices we just added.
+			*/
+			bool foundAB = false;
+			bool foundBC = false;
+			bool foundCA = false;
+
+			for (int i = 0; i < vertices.size(); i++)
+			{
+				PolyVert* pv = &vertices[i];
+
+				if (pv->vertex == midAB.vertex)
+				{
+					foundAB = true;
+					ta->b = i;
+					tb->a = i;
+					td->a = i;
+					pv->sharers.push_back(taI);
+					pv->sharers.push_back(tbI);
+					pv->sharers.push_back(tdI);
+				}
+				else if (pv->vertex == midBC.vertex)
+				{
+					foundBC = true;
+					tb->c = i;
+					tc->b = i;
+					td->b = i;
+					pv->sharers.push_back(tbI);
+					pv->sharers.push_back(tcI);
+					pv->sharers.push_back(tdI);
+				}
+				else if (pv->vertex == midCA.vertex)
+				{
+					foundCA = true;
+					tc->a = i;
+					td->c = i;
+					ta->c = i;
+					pv->sharers.push_back(tcI);
+					pv->sharers.push_back(tdI);
+					pv->sharers.push_back(taI);
+				}
+			}
+
+			int ind = vertices.size();
+			if (!foundAB)
+			{
+				abI = ind++;
+				ta->b = abI;
+				tb->a = abI;
+				td->a = abI;
+				midAB.sharers.push_back(taI);
+				midAB.sharers.push_back(tbI);
+				midAB.sharers.push_back(tdI);
+				vertices.push_back(midAB);
+			}
+			if (!foundBC)
+			{
+				bcI = ind++;
+				tb->c = bcI;
+				tc->b = bcI;
+				td->b = bcI;
+				midBC.sharers.push_back(tbI);
+				midBC.sharers.push_back(tcI);
+				midBC.sharers.push_back(tdI);
+				vertices.push_back(midBC);
+			}
+			if (!foundCA)
+			{
+				caI = ind++;
+				tc->a = caI;
+				td->c = caI;
+				ta->c = caI;
+				midCA.sharers.push_back(tcI);
+				midCA.sharers.push_back(tdI);
+				midCA.sharers.push_back(taI);
+				vertices.push_back(midCA);
+			}
 		}
 
+		faces.clear();	// I don't think this is strictly necessary.
+						// But also, what the heck.
 		faces = out;
 	}
 
@@ -55,28 +180,30 @@ namespace Mandalin
 		float z = 0.850650808352039932f;
 		float n = 0.0f;
 
-		vertices = 12;
-		std::vector<glm::vec3> icoVertices =
+		vertices =
 		{
-			{ -x, n, z }, { x, n, z }, { -x, n, -z }, { x, n, -z },
-			{ n, z, x }, { n, z, -x }, { n, -z, x }, { n, -z, -x },
-			{ z, x, n }, { -z, x, n }, { z, -x, n }, { -z, -x, n }
+			{ { -x, n, z }, {} }, { { x, n, z }, {} }, { { -x, n, -z }, {} }, { { x, n, -z }, {} },
+			{ { n, z, x }, {} }, { { n, z, -x }, {} }, { { n, -z, x }, {} }, { { n, -z, -x }, {} },
+			{ { z, x, n }, {} }, { { -z, x, n }, {} }, { { z, -x, n }, {} }, { { -z, -x, n }, {} }
 		};
 
-		std::vector<std::vector<unsigned int>> icoFaces =
+		faces =
 		{
-			{{ 0, 4, 1 }}, {{ 0, 9, 4 }}, {{ 9, 5, 4 }}, {{ 4, 5, 8 }}, {{ 4, 8, 1 }},
-			{{ 8, 10, 1 }}, {{ 8, 3, 10 }}, {{ 5, 3, 8 }}, {{ 5, 2, 3 }}, {{ 2, 7, 3 }},
-			{{ 7, 10, 3 }},{{ 7, 6, 10 }}, {{ 7, 11, 6 }}, {{ 11, 0, 6 }}, {{ 0, 1, 6 }},
-			{{ 6, 1, 10 }}, {{ 9, 0, 11 }}, {{ 9, 11, 2 }}, {{ 9, 2, 5 }}, {{ 7, 2, 11 }}
+			{ 0, 4, 1 }, { 0, 9, 4 }, { 9, 5, 4 }, { 4, 5, 8 }, { 4, 8, 1 },
+			{ 8, 10, 1 }, { 8, 3, 10 }, { 5, 3, 8 }, { 5, 2, 3 }, { 2, 7, 3 },
+			{ 7, 10, 3 },{ 7, 6, 10 }, { 7, 11, 6 }, { 11, 0, 6 }, { 0, 1, 6 },
+			{ 6, 1, 10 }, { 9, 0, 11 }, { 9, 11, 2 }, { 9, 2, 5 }, { 7, 2, 11 }
 		};
 
-		int vertIDSpacer = pow(2, worldSize);
-
-		for (int i = 0; i < icoFaces.size(); i++)
+		for (int i = 0; i < vertices.size(); i++)
 		{
-			faces.push_back({ { icoVertices[icoFaces[i][0]], icoVertices[icoFaces[i][1]], icoVertices[icoFaces[i][2]] },
-							{ icoFaces[i][0] * vertIDSpacer, icoFaces[i][1] * vertIDSpacer, icoFaces[i][2] * vertIDSpacer } });
+			vertices[i].vertex = radius * glm::normalize(vertices[i].vertex);
+
+			// I know. I don't care.
+			for (int j = 0; j < faces.size(); j++)
+			{
+				if (faces[j].a == i || faces[j].b == i || faces[j].c == i) vertices[i].sharers.push_back(j);
+			}
 		}
 	}
 

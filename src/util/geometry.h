@@ -14,30 +14,30 @@
 namespace Mandalin
 {
 	/*-----------------------------------------------*/
-	/* Temporary Node (for World Generation) */
+	/* Polyhedron Vertex */
 	/*-----------------------------------------------*/
-	struct TempNode
+	/*
+		Contains a unique vertex and the
+		indices of the triangles which share it.
+	*/
+	struct PolyVert
 	{
 		glm::vec3					vertex;
-		unsigned int				id;
-
-		std::vector<unsigned int>	neighborIDs;
+		std::vector<unsigned int>	sharers;
 	};
 
 	/*-----------------------------------------------*/
 	/* TriFace */
 	/*-----------------------------------------------*/
+	/*
+		Just contains the indices of the
+		constituent vertices.
+	*/
 	struct TriFace
 	{
-		glm::vec3		vertices[3];
-		unsigned int	vertIDS[3];
-
-		void Normalize(float n)
-		{
-			vertices[0] = n * glm::normalize(vertices[0]);
-			vertices[1] = n * glm::normalize(vertices[1]);
-			vertices[2] = n * glm::normalize(vertices[2]);
-		}
+		unsigned int			a;
+		unsigned int			b;
+		unsigned int			c;
 	};
 
 	/*-----------------------------------------------*/
@@ -45,11 +45,56 @@ namespace Mandalin
 	/*-----------------------------------------------*/
 	struct Polyhedron
 	{
-		unsigned int			vertices;
+		std::vector<PolyVert>	vertices;
 		std::vector<TriFace>	faces;
+
+		float					radius = 100.0f;
 
 		void					Subdivide();
 		Polyhedron(int worldSize);
+	};
+
+	/*-----------------------------------------------*/
+	/* Vertex Node (for World Generation) */
+	/*-----------------------------------------------*/
+	/*
+		Each vertex gets made into a hex whose
+		neighbors are the hexes made from the
+		triangles which share that vertex.
+
+		Only vertex nodes can become pentagons.
+	*/
+	struct VertNode
+	{
+		bool			pentagon;
+		unsigned int	vertIndex;
+		unsigned int	neighborIndices[6];
+	};
+
+	/*-----------------------------------------------*/
+	/* Triangle Node (for World Generation) */
+	/*-----------------------------------------------*/
+	/*
+		Each triangle gets made into a hex whose
+		neighbors are the three hexes made from its
+		vertices and the three hexes made from the
+		triangles which share two vertices with it.
+	*/
+	struct TriNode
+	{
+		unsigned int	triIndex;
+		unsigned int	vertNeighborIndices[3];
+		unsigned int	triNeighborIndices[3];
+	};
+
+	/*-----------------------------------------------*/
+	/* Hex Node (for World Generation) */
+	/*-----------------------------------------------*/
+	struct HexNode
+	{
+		unsigned int				index;
+		glm::vec3					center;
+		std::vector<unsigned int>	neighbors;
 	};
 
 	/*-----------------------------------------------*/

@@ -21,14 +21,14 @@ namespace Mandalin
 	*/
 	struct Hex
 	{
-		// The chunk indices of each neighbor followed by
-		// their indices within that chunk.
-		// std::vector<std::pair<unsigned int, unsigned int>>	neighbors;
-
 		// Information about its chunk and its location
 		// within it.
 		unsigned int	chunk;
 		unsigned int	index;
+
+		// The chunk indices of each neighbor followed by
+		// their indices within that chunk.
+		std::vector<std::pair<unsigned int, unsigned int>>	neighbors;
 	};
 }
 
