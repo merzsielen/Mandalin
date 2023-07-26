@@ -35,221 +35,115 @@ namespace Mandalin
 			shouldn't be too bad.
 		*/
 
+		std::vector<HexNode> hexNodes;
+
 		/*
-			First, we go through all our vertices.
+			First, we go through each vertex.
 		*/
-		std::vector<VertNode> vertexNodes;
 		for (int i = 0; i < polyhedron->vertices.size(); i++)
 		{
 			PolyVert* pv = &polyhedron->vertices[i];
 
 			/*
-				Each vertex node is composed of an index of the
-				vertex and the indices of the triangles which
-				share that vertex.
+				We need to find all the vertices of the triangles
+				which share this vertex.
 			*/
+			std::vector<unsigned int> neighborIndices;
 
-			VertNode vn =
+			for (int j = 0; j < pv->sharers.size(); j++)
 			{
-				(pv->sharers.size() == 6),	// Does the vertex have six triangles that share it?
-				i,
-				{}
-			};
+				TriFace* tf = &polyhedron->faces[pv->sharers[j]];
 
-			std::copy(pv->sharers.begin(), pv->sharers.end(), vn.neighborIndices);
-			vertexNodes.push_back(vn);
-		}
+				PolyVert* pa = &polyhedron->vertices[tf->a];
+				PolyVert* pb = &polyhedron->vertices[tf->b];
+				PolyVert* pc = &polyhedron->vertices[tf->c];
 
-		std::cout << "Generated " << vertexNodes.size() << " vertices." << std::endl;
-		
-		/*
-			Now, we go through all our triangles.
-		*/
-		std::vector<TriNode> triangleNodes;
-		for (int i = 0; i < polyhedron->faces.size(); i++)
-		{
-			TriFace* f = &polyhedron->faces[i];
-			TriNode tn = {};
+				if (pa == pv) pa = nullptr;
+				else if (pb == pv) pb = nullptr;
+				else if (pc == pv) pc = nullptr;
 
-			/*
-				Each triangle node is composed of the index
-				of its triangle, the indices of its vertices...
-			*/
-			tn.triIndex = i;
-			tn.vertNeighborIndices[0] = f->a;
-			tn.vertNeighborIndices[1] = f->b;
-			tn.vertNeighborIndices[2] = f->c;
+				for (int k = 0; k < neighborIndices.size(); k++)
+				{
+					if (neighborIndices[k] == tf->a) pa = nullptr;
+					else if (neighborIndices[k] == tf->b) pb = nullptr;
+					else if (neighborIndices[k] == tf->c) pc = nullptr;
+				}
 
-			/*
-				... and the indices of the other triangles which
-				share two of its vertices. These are a little harder
-				to find.
-			*/
-			int neighborsFound = 0;
-			for (int j = 0; j < polyhedron->vertices[f->a].sharers.size(); j++)
-			{
-				TriFace* n = &polyhedron->faces[polyhedron->vertices[f->a].sharers[j]];
-				if (n == f) continue;
-
-				int shared = 0;
-				if (n->a == f->a || n->a == f->b || n->a == f->c) shared++;
-				if (n->b == f->a || n->b == f->b || n->b == f->c) shared++;
-				if (n->c == f->a || n->c == f->b || n->c == f->c) shared++;
-
-				if (shared > 1) tn.triNeighborIndices[neighborsFound++] = j;
+				if (pa) neighborIndices.push_back(tf->a);
+				if (pb) neighborIndices.push_back(tf->b);
+				if (pc) neighborIndices.push_back(tf->c);
 			}
 
-			triangleNodes.push_back(tn);
-		}
+			HexNode hn =
+			{
+				i,
+				pv->vertex,
+				neighborIndices
+			};
 
-		std::cout << "Generated " << triangleNodes.size() << " faces." << std::endl;
+			hexNodes.push_back(hn);
+		}
 
 		/*
-			Now that we have all our vertex and triangle nodes.
-			We know two things:
-				1. The indices of the neighbor hexes that derive
-				from triangle nodes will always be the indices of
-				the triangles plus the total number of hexes we
-				derive from vertices. In other words:
-					
-					newHexIndex = vertexNodes.size() + oldTriangleIndex;
-
-				2. Similarly, the indices of the neighbor hexes
-				derived from vertex nodes will always just be the
-				index of the old vertex.
-
-					newHexIndex = oldVertexIndex;
+			Now, we go through each face.
 		*/
-
-		std::vector<HexNode> hexNodes;
-		
-		for (int i = 0; i < vertexNodes.size(); i++)
+		for (int i = 0; i < polyhedron->faces.size(); i++)
 		{
-			VertNode* vn = &vertexNodes[i];
-			glm::vec3 center = polyhedron->radius * glm::normalize(polyhedron->vertices[vn->vertIndex].vertex);
-			HexNode hn = { i, center, {} };
-			hn.neighbors.push_back(vertexNodes.size() + vn->neighborIndices[0]);
-			hn.neighbors.push_back(vertexNodes.size() + vn->neighborIndices[1]);
-			hn.neighbors.push_back(vertexNodes.size() + vn->neighborIndices[2]);
-			hn.neighbors.push_back(vertexNodes.size() + vn->neighborIndices[3]);
-			hn.neighbors.push_back(vertexNodes.size() + vn->neighborIndices[4]);
-			if (!vn->pentagon) hn.neighbors.push_back(vertexNodes.size() + vn->neighborIndices[5]);
-			hexNodes.push_back(hn);
-		}
 
-		for (int i = 0; i < triangleNodes.size(); i++)
-		{
-			TriNode* tn = &triangleNodes[i];
-
-			glm::vec3 center = polyhedron->vertices[polyhedron->faces[tn->triIndex].a].vertex;
-			center += polyhedron->vertices[polyhedron->faces[tn->triIndex].b].vertex;
-			center += polyhedron->vertices[polyhedron->faces[tn->triIndex].c].vertex;
-			center /= 3.0f;
-			center = polyhedron->radius * glm::normalize(center);
-
-			HexNode hn = { vertexNodes.size() + i, center, {} };
-			hn.neighbors.push_back(tn->vertNeighborIndices[0]);
-			hn.neighbors.push_back(tn->vertNeighborIndices[1]);
-			hn.neighbors.push_back(tn->vertNeighborIndices[2]);
-			hn.neighbors.push_back(vertexNodes.size() + tn->triNeighborIndices[0]);
-			hn.neighbors.push_back(vertexNodes.size() + tn->triNeighborIndices[1]);
-			hn.neighbors.push_back(vertexNodes.size() + tn->triNeighborIndices[2]);
-			hexNodes.push_back(hn);
 		}
 
 		std::cout << "Generated " << hexNodes.size() << " hexes." << std::endl;
-		
-		//for (int i = 0; i < hexNodes.size(); i++)
-		//{
-		//	/*
-		//		The vertices of each hex are at the average of
-		//		the center and two of the hex's neighbors' centers.
-		//		This means we have to sort the neighbors.
-		//	*/
 
-		//	HexNode* hn = &hexNodes[i];
+		/*
+			Now, we need to go through and sort each hex's neighbors.
 
-		//	/*
-		//		First, we find the neighbor closest to the north pole
-		//		(kinda and only maybe, but we only need it to be kinda
-		//		and maybe).
-		//	*/
-		//	glm::vec3 center = hn->center;
-		//	glm::vec3 pole = glm::vec3(0.0f, polyhedron->radius, 0.0f);
-		//	glm::vec3 up = center + pole;
-		//	pole = glm::vec3(polyhedron->radius, 0.0f, 0.0f);
-		//	glm::vec3 right = center + pole;
+		*/
+		for (int i = 0; i < hexNodes.size(); i++)
+		{
+			HexNode* hn = &hexNodes[i];
 
-		//	unsigned int closestUpNeighbor = 0;
-		//	unsigned int closestRightNeighbor = 0;
-		//	float closestUpDistance = INFINITY;
-		//	float closestRightDistance = INFINITY;
+			unsigned int currentNeighborIdx = hn->neighbors[0];
+			std::vector<unsigned int> sortedNeighbors = { currentNeighborIdx };
 
-		//	for (int j = 0; j < hn->neighbors.size(); j++)
-		//	{
-		//		HexNode* neighbor = &hexNodes[hn->neighbors[j]];
+			// Now, we iterate through all the neighbors.
+			while (true)
+			{
+				// And we see what the nearest neighbor is which hasn't already
+				// been added to sortedNeighbors.
+				glm::vec3 a = hexNodes[currentNeighborIdx].center;
 
-		//		float upDistance = glm::distance(neighbor->center, up);
-		//		float rightDistance = glm::distance(neighbor->center, right);
+				unsigned int nearestNeighbor;
+				float nearestDistance = INFINITY;
 
-		//		if (upDistance < closestUpDistance)
-		//		{
-		//			closestUpNeighbor = j;
-		//			closestUpDistance = upDistance;
-		//		}
-		//		if (rightDistance < closestRightDistance)
-		//		{
-		//			closestRightNeighbor = j;
-		//			closestRightDistance = rightDistance;
-		//		}
-		//	}
+				for (int j = 0; j < hn->neighbors.size(); j++)
+				{
+					bool alreadyIncluded = false;
 
-		//	/*
-		//		Now, we can go through and rotate clockwise around to find
-		//		the other neighbors.
-		//	*/
+					for (int k = 0; k < sortedNeighbors.size(); k++)
+					{
+						if (sortedNeighbors[k] == hn->neighbors[j]) alreadyIncluded = true;
+					}
 
-		//	std::vector<unsigned int> sortedNeighbors = { closestUpNeighbor, closestRightNeighbor };
-		//	HexNode* currentNeighbor = &hexNodes[closestRightNeighbor];
+					if (alreadyIncluded) continue;
 
-		//	int ind = 0;
-		//	while (true)
-		//	{
-		//		/*
-		//			Take the newest added neighbor and find the neighbor it
-		//			shares with the center hex which isn't the preceding
-		//			node added to the vector.
-		//		*/
+					glm::vec3 b = hexNodes[hn->neighbors[j]].center;
 
-		//		unsigned int previousNeighborIndex = sortedNeighbors[ind++];
-		//		HexNode* currentNeighbor = &hexNodes[sortedNeighbors[ind]];
-		//		int nextNeighborIndex = -1;
+					float dist = glm::distance(a, b);
 
-		//		for (int j = 0; j < currentNeighbor->neighbors.size(); j++)
-		//		{
-		//			// Get the index of this neighbor's neighbor.
-		//			unsigned int potentialNeighborIndex = currentNeighbor->neighbors[j];
+					if (dist < nearestDistance)
+					{
+						nearestDistance = dist;
+						nearestNeighbor = hn->neighbors[j];
+					}
+				}
 
-		//			// If this is the center or the previous neighbor, just continue.
-		//			if (potentialNeighborIndex == i ||
-		//				potentialNeighborIndex == previousNeighborIndex) continue;
+				if (nearestDistance == INFINITY) break;
+				sortedNeighbors.push_back(nearestNeighbor);
+				currentNeighborIdx = nearestNeighbor;
+			}
 
-		//			// Now check if the center shares any neighbors with it.
-		//			for (int k = 0; k < hn->neighbors.size(); k++)
-		//			{
-		//				if (potentialNeighborIndex == hn->neighbors[k])
-		//				{
-		//					nextNeighborIndex = hn->neighbors[k];
-		//				}
-		//			}
-		//		}
-
-		//		if (nextNeighborIndex == -1) break;
-		//		sortedNeighbors.push_back(nextNeighborIndex);
-		//	}
-
-		//	hn->neighbors = sortedNeighbors;
-		//}
+			hn->neighbors = sortedNeighbors;
+		}
 
 		/*
 			Now, finally, we go through and convert each hex
@@ -268,18 +162,16 @@ namespace Mandalin
 
 			for (int j = 0; j < hn->neighbors.size(); j++)
 			{
+				glm::vec3 a = hn->center;
 				glm::vec3 b = hexNodes[hn->neighbors[j]].center;
-				glm::vec3 c = hexNodes[hn->neighbors[(j + 1) % hn->neighbors.size()]].center;
-				verts.push_back(polyhedron->radius * glm::normalize((b + c + hn->center) / 3.0f));
+				verts.push_back(polyhedron->radius * glm::normalize(Lerp(a, b, (1 / 3.0f))));
 			}
 
-			for (int j = 0; j < hn->neighbors.size(); j++)
+			for (int j = 0; j < verts.size(); j++)
 			{
 				glm::vec3 a = hn->center;
-				/*glm::vec3 b = verts[j];
-				glm::vec3 c = verts[(static_cast<unsigned long long>(j) + 1) % verts.size()];*/
-				glm::vec3 b = hexNodes[hn->neighbors[j]].center;
-				glm::vec3 c = hexNodes[hn->neighbors[(j + 1) % hn->neighbors.size()]].center;
+				glm::vec3 b = verts[j];
+				glm::vec3 c = verts[(static_cast<unsigned long long>(j) + 1) % verts.size()];
 
 				Triangle t =
 				{
@@ -320,7 +212,7 @@ namespace Mandalin
 
 		for (int i = 0; i < worldSize; i++) polyhedron->Subdivide();
 
-		std::vector<Triangle> triangles;
+		/*std::vector<Triangle> triangles;
 
 		for (int j = 0; j < polyhedron->faces.size(); j++)
 		{
@@ -353,8 +245,8 @@ namespace Mandalin
 			c->index = chunks.size() - 1;
 			c->triCount = allotedTris;
 			for (int j = i; j < i + allotedTris; j++) c->triangles[j - i] = triangles[j];
-		}
+		}*/
 
-		// Hexify(polyhedron);
+		Hexify(polyhedron);
 	}
 }
