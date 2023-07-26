@@ -52,26 +52,9 @@ namespace Mandalin
 
 			for (int j = 0; j < pv->sharers.size(); j++)
 			{
-				TriFace* tf = &polyhedron->faces[pv->sharers[j]];
-
-				PolyVert* pa = &polyhedron->vertices[tf->a];
-				PolyVert* pb = &polyhedron->vertices[tf->b];
-				PolyVert* pc = &polyhedron->vertices[tf->c];
-
-				if (pa == pv) pa = nullptr;
-				else if (pb == pv) pb = nullptr;
-				else if (pc == pv) pc = nullptr;
-
-				for (int k = 0; k < neighborIndices.size(); k++)
-				{
-					if (neighborIndices[k] == tf->a) pa = nullptr;
-					else if (neighborIndices[k] == tf->b) pb = nullptr;
-					else if (neighborIndices[k] == tf->c) pc = nullptr;
-				}
-
-				if (pa) neighborIndices.push_back(tf->a);
-				if (pb) neighborIndices.push_back(tf->b);
-				if (pc) neighborIndices.push_back(tf->c);
+				unsigned int ind = pv->sharers[j];
+				ind += polyhedron->vertices.size();
+				neighborIndices.push_back(ind);
 			}
 
 			HexNode hn =
@@ -84,12 +67,111 @@ namespace Mandalin
 			hexNodes.push_back(hn);
 		}
 
+		std::cout << "Vertices: " << polyhedron->vertices.size() << std::endl;
+		std::cout << "Faces: " << polyhedron->faces.size() << std::endl;
+
 		/*
 			Now, we go through each face.
 		*/
 		for (int i = 0; i < polyhedron->faces.size(); i++)
 		{
+			TriFace* tf = &polyhedron->faces[i];
 
+			/*
+				Each hex derived from a face has six neighbors:
+					
+					3 derived from vertices
+					3 derived from triangles
+
+				Those derived from vertices come from the three
+				vertices that make up the triangle, while the
+				three derived from triangles come from the neighbors
+				that share two vertices with the triangle.
+
+				Since the former are easier, we can do those first.
+			*/
+
+			std::vector<unsigned int> neighborIndices;
+
+			neighborIndices.push_back(tf->a);
+			neighborIndices.push_back(tf->b);
+			neighborIndices.push_back(tf->c);
+
+			/*
+				Now, we must go through and find the neighboring
+				triangles that share two vertices with this one.
+
+				We're going to do this in pairs. First all the
+				sharers of vertex A, checking if they have B,
+				then all the sharers of vertex B, checking if
+				they have C, then all the sharers of vertex C,
+				checking if they have A.
+			*/
+
+			// At A Checking B
+			PolyVert* tfA = &polyhedron->vertices[tf->a];
+			for (int j = 0; j < tfA->sharers.size(); j++)
+			{
+				TriFace* tf2 = &polyhedron->faces[tfA->sharers[j]];
+
+				if (tf == tf2) continue;
+
+				if (tf2->a == tf->b ||
+					tf2->b == tf->b ||
+					tf2->c == tf->b)
+				{
+					neighborIndices.push_back(polyhedron->vertices.size() + tfA->sharers[j]);
+					break;
+				}
+			}
+
+			// At B Checking C
+			PolyVert* tfB = &polyhedron->vertices[tf->b];
+			for (int j = 0; j < tfB->sharers.size(); j++)
+			{
+				TriFace* tf2 = &polyhedron->faces[tfB->sharers[j]];
+
+				if (tf == tf2) continue;
+
+				if (tf2->a == tf->c ||
+					tf2->b == tf->c ||
+					tf2->c == tf->c)
+				{
+					neighborIndices.push_back(polyhedron->vertices.size() + tfB->sharers[j]);
+					break;
+				}
+			}
+
+			// At C Checking A
+			PolyVert* tfC = &polyhedron->vertices[tf->c];
+			for (int j = 0; j < tfC->sharers.size(); j++)
+			{
+				TriFace* tf2 = &polyhedron->faces[tfC->sharers[j]];
+
+				if (tf == tf2) continue;
+
+				if (tf2->a == tf->a ||
+					tf2->b == tf->a ||
+					tf2->c == tf->a)
+				{
+					neighborIndices.push_back(polyhedron->vertices.size() + tfC->sharers[j]);
+					break;
+				}
+			}
+
+			glm::vec3 center = polyhedron->vertices[tf->a].vertex;
+			center += polyhedron->vertices[tf->b].vertex;
+			center += polyhedron->vertices[tf->c].vertex;
+			center = polyhedron->radius * glm::normalize(center / 3.0f);
+
+			HexNode hn =
+			{
+				i + polyhedron->vertices.size(),
+				center,
+				neighborIndices
+			};
+
+			hexNodes.push_back(hn);
 		}
 
 		std::cout << "Generated " << hexNodes.size() << " hexes." << std::endl;
@@ -164,7 +246,8 @@ namespace Mandalin
 			{
 				glm::vec3 a = hn->center;
 				glm::vec3 b = hexNodes[hn->neighbors[j]].center;
-				verts.push_back(polyhedron->radius * glm::normalize(Lerp(a, b, (1 / 3.0f))));
+				glm::vec3 c = hexNodes[hn->neighbors[(j + 1) % hn->neighbors.size()]].center;
+				verts.push_back(polyhedron->radius * glm::normalize((a + b + c) / 3.0f));
 			}
 
 			for (int j = 0; j < verts.size(); j++)
@@ -199,7 +282,7 @@ namespace Mandalin
 			for (int j = i; j < i + allotedTris; j++) c->triangles[j - i] = triangles[j];
 		}
 
-		std::cout << "Done." << std::endl;
+		// std::cout << "Done." << std::endl;
 	}
 
 	Planet::Planet(unsigned int worldSize)
