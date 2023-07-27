@@ -15,14 +15,14 @@ namespace Mandalin
 		bool moveIn = (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS);
 		bool moveOut = ((glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) && !moveIn);
 
-		if (moveUp) position.y += 10.0f * zoom * deltaTime;
-		else if (moveDown) position.y -= 10.0f * zoom * deltaTime;
+		if (moveUp) position.y += 100.0f * zoom * deltaTime;
+		else if (moveDown) position.y -= 100.0f * zoom * deltaTime;
 
-		if (moveRight) position.x += 10.0f * zoom * deltaTime;
-		else if (moveLeft) position.x -= 10.0f * zoom * deltaTime;
+		if (moveRight) position.x += 100.0f * zoom * deltaTime;
+		else if (moveLeft) position.x -= 100.0f * zoom * deltaTime;
 
-		if (moveIn) position.z += 10.0f * zoom * deltaTime;
-		else if (moveOut) position.z -= 10.0f * zoom * deltaTime;
+		if (moveIn) position.z += 100.0f * zoom * deltaTime;
+		else if (moveOut) position.z -= 100.0f * zoom * deltaTime;
 	}
 
 	/*-----------------------------------------------*/

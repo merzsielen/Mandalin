@@ -27,17 +27,35 @@ namespace Mandalin
 		shaders[0].Use();
 		shaders[0].SetMatrix("MVP", camera->GetViewProjection());
 
-		// We still need to figure out which chunks to render.
-		// Right now, we render them all.
+		glm::vec3 camPos = camera->GetPosition();
+		glm::vec3 planetPos = planet->GetPosition();
+
+		float relCamDistance = glm::distance(camPos, planetPos) / planet->GetRadius();
+		float highestTheta = 1.74f * relCamDistance;
+
+		glm::vec3 ab = planetPos - camPos;
+
 		for (int i = 0; i < planet->ChunkCount(); i++)
 		{
 			Chunk* c = planet->GetChunk(i);
 
-			glBindVertexArray(VAO);
-			glBindBuffer(GL_ARRAY_BUFFER, VBO);
-			glBufferSubData(GL_ARRAY_BUFFER, 0, c->triCount * sizeof(Triangle), &c->triangles[0]);
-			glDrawElements(GL_TRIANGLES, c->triCount * 3, GL_UNSIGNED_INT, nullptr);
+			glm::vec3 bc = c->center - planetPos;
+
+			float dotABC = glm::dot(ab, bc);
+			float magABC = glm::length(ab) * glm::length(bc);
+
+			float theta = acosf(dotABC / magABC);
+
+			if (theta < highestTheta)
+			{
+				glBindVertexArray(VAO);
+				glBindBuffer(GL_ARRAY_BUFFER, VBO);
+				glBufferSubData(GL_ARRAY_BUFFER, 0, c->triCount * sizeof(Triangle), &c->triangles[0]);
+				glDrawElements(GL_TRIANGLES, c->triCount * 3, GL_UNSIGNED_INT, nullptr);
+			}
 		}
+
+		// std::cout << relCamDistance << std::endl;
 	}
 
 	/*-----------------------------------------------*/

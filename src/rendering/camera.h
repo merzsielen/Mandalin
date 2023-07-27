@@ -43,6 +43,11 @@ namespace Mandalin
 		float				farClip = 15000.0f;
 
 		/*-----------------------------------------------*/
+		/* Max Chunk Render Distance */
+		/*-----------------------------------------------*/
+		float				maxChunkDistance = 100.0f;
+
+		/*-----------------------------------------------*/
 		/* Projection & View */
 		/*-----------------------------------------------*/
 		Lens				lens = Lens::perspective;
@@ -79,6 +84,11 @@ namespace Mandalin
 
 		void				SetWindowWidth(int width) { windowWidth = width; }
 		void				SetWindowHeight(int height) { windowHeight = height; }
+
+		/*-----------------------------------------------*/
+		/* Max Chunk Render Distance Functions */
+		/*-----------------------------------------------*/
+		float				GetMaxChunkRenderDistance() { return maxChunkDistance; }
 
 		/*-----------------------------------------------*/
 		/* Projection & View Functions */

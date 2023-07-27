@@ -7,6 +7,97 @@
 
 namespace Mandalin
 {
+	bool CompareDistances(HexNode a, HexNode b)
+	{
+		glm::vec3 up = glm::vec3(0.0f, 10000.0f, 0.0f);
+		glm::vec3 right = glm::vec3(10000.0f, 0.0f, 0.0f);
+		glm::vec3 forward = glm::vec3(0.0f, 0.0f, 10000.0f);
+
+		return (glm::distance2(up, a.center) + glm::distance2(right, a.center) + glm::distance2(forward, a.center)) >
+			(glm::distance2(up, b.center) + glm::distance2(right, b.center) + glm::distance2(forward, b.center));
+	}
+
+	int GetVoronoiStart(int size, std::vector<int> selectedStarts)
+	{
+		int r = rand() % size;
+
+		bool found = false;
+
+		for (int i = 0; i < selectedStarts.size(); i++)
+		{
+			if (selectedStarts[i] == r) found = true;
+		}
+
+		if (found) return GetVoronoiStart(size, selectedStarts);
+		return r;
+	}
+
+	std::vector<HexNode> VoronoiSort(std::vector<HexNode> unordered, int desiredCount)
+	{
+		srand(time(NULL));
+		int count = 1 + (unordered.size() / desiredCount);
+		std::vector<std::vector<HexNode>> sorted;
+		std::vector<int> selectedStarts = {};
+
+		int stride = unordered.size() / count;
+
+		for (int i = 0; i < unordered.size(); i += stride)
+		{
+			selectedStarts.push_back(i);
+			sorted.push_back({ unordered[i] });
+			unordered[i].filled = true;
+		}
+
+		/*for (int i = 0; i < count; i++)
+		{
+			int r = GetVoronoiStart(unordered.size(), selectedStarts);
+			selectedStarts.push_back(r);
+			sorted.push_back({ unordered[r] });
+			unordered[r].filled = true;
+		}*/
+
+		int filled = sorted.size();
+
+		while (filled < unordered.size())
+		{
+			// For each floodfill group.
+			for (int i = 0; i < sorted.size(); i++)
+			{
+				std::vector<HexNode> newNodes;
+
+				// For each member of the group.
+				for (int j = 0; j < sorted[i].size(); j++)
+				{
+					// For each neighbor of the member.
+					for (int k = 0; k < sorted[i][j].neighbors.size(); k++)
+					{
+						HexNode* hn = &unordered[sorted[i][j].neighbors[k]];
+
+						if (hn->filled == false)
+						{
+							hn->filled = true;
+							newNodes.push_back(*hn);
+							hn->faceOrigin = i;
+							filled++;
+						}
+					}
+				}
+
+				for (int j = 0; j < newNodes.size(); j++) sorted[i].push_back(newNodes[j]);
+			}
+		}
+
+		std::vector<HexNode> out;
+		for (int i = 0; i < sorted.size(); i++)
+		{
+			for (int j = 0; j < sorted[i].size(); j++)
+			{
+				out.push_back(sorted[i][j]);
+			}
+		}
+		return out;
+	}
+
 	void Polyhedron::Subdivide()
 	{
 		std::vector<TriFace> out;
@@ -60,10 +151,10 @@ namespace Mandalin
 				My brain is a little scattered today
 				bear with me.
 			*/
-			out.push_back({ aI, 0 /* abI */, 0 /* caI */ });
-			out.push_back({ 0 /* abI */, bI, 0 /* bcI */ });
-			out.push_back({ 0 /* caI */, 0 /* bcI */, cI });
-			out.push_back({ 0 /* abI */, 0 /* bcI */, 0 /* caI */ });
+			out.push_back({ aI, 0 /* abI */, 0 /* caI */, faces[i].faceOrigin });
+			out.push_back({ 0 /* abI */, bI, 0 /* bcI */, faces[i].faceOrigin });
+			out.push_back({ 0 /* caI */, 0 /* bcI */, cI, faces[i].faceOrigin });
+			out.push_back({ 0 /* abI */, 0 /* bcI */, 0 /* caI */, faces[i].faceOrigin });
 
 			// You could fit my brain in a thimble.
 			unsigned int taI = out.size() - 4;
@@ -189,10 +280,10 @@ namespace Mandalin
 
 		faces =
 		{
-			{ 0, 4, 1 }, { 0, 9, 4 }, { 9, 5, 4 }, { 4, 5, 8 }, { 4, 8, 1 },
-			{ 8, 10, 1 }, { 8, 3, 10 }, { 5, 3, 8 }, { 5, 2, 3 }, { 2, 7, 3 },
-			{ 7, 10, 3 },{ 7, 6, 10 }, { 7, 11, 6 }, { 11, 0, 6 }, { 0, 1, 6 },
-			{ 6, 1, 10 }, { 9, 0, 11 }, { 9, 11, 2 }, { 9, 2, 5 }, { 7, 2, 11 }
+			{ 0, 4, 1, 0 }, { 0, 9, 4, 1 }, { 9, 5, 4, 2 }, { 4, 5, 8, 3 }, { 4, 8, 1, 4 },
+			{ 8, 10, 1, 5 }, { 8, 3, 10, 6 }, { 5, 3, 8, 7 }, { 5, 2, 3, 8 }, { 2, 7, 3, 9 },
+			{ 7, 10, 3, 10 },{ 7, 6, 10, 11 }, { 7, 11, 6, 12 }, { 11, 0, 6, 13 }, { 0, 1, 6, 14 },
+			{ 6, 1, 10, 15 }, { 9, 0, 11, 16 }, { 9, 11, 2, 17 }, { 9, 2, 5, 18 }, { 7, 2, 11, 19 }
 		};
 
 		for (int i = 0; i < vertices.size(); i++)

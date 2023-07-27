@@ -80,7 +80,7 @@ void main()
 	*/
 	Mandalin::Camera* camera = new Mandalin::Camera({ 0, 0, 0 }, { 1, 0, 0, 0 }, 1.0f, window);
 	Mandalin::Renderer* renderer = new Mandalin::Renderer(camera);
-	Mandalin::Planet* planet = new Mandalin::Planet(2);
+	Mandalin::Planet* planet = new Mandalin::Planet(5);
 
 	/*
 		And now we can run the loop.
@@ -102,7 +102,6 @@ void main()
 		{
 			start = now;
 			std::cout << "Frame Count: " + std::to_string(frameCount) << std::endl;
-
 			frameCount = 0;
 		}
 

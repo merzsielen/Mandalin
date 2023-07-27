@@ -15,11 +15,13 @@ set(BASE_SRCS
     "src/rendering/shader.h"
     "src/util/geometry.cpp"
     "src/util/geometry.h"
+    
     "src/world/chunk.h"
     "src/world/hex.h"
     "src/world/planet.h"
+    "src/world/planet.cpp"
     "src/main.cpp"
- "src/world/planet.cpp")
+)
 
 # Add source to this project's executable.
 add_executable (mandalin ${BASE_SRCS})

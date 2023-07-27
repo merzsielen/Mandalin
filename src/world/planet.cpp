@@ -1,6 +1,8 @@
 #include "planet.h"
+
 #include <time.h>
 #include <iostream>
+#include <algorithm>
 
 namespace Mandalin
 {
@@ -61,14 +63,12 @@ namespace Mandalin
 			{
 				i,
 				pv->vertex,
-				neighborIndices
+				neighborIndices,
+				polyhedron->faces[pv->sharers[0]].faceOrigin
 			};
 
 			hexNodes.push_back(hn);
 		}
-
-		std::cout << "Vertices: " << polyhedron->vertices.size() << std::endl;
-		std::cout << "Faces: " << polyhedron->faces.size() << std::endl;
 
 		/*
 			Now, we go through each face.
@@ -168,7 +168,8 @@ namespace Mandalin
 			{
 				i + polyhedron->vertices.size(),
 				center,
-				neighborIndices
+				neighborIndices,
+				tf->faceOrigin
 			};
 
 			hexNodes.push_back(hn);
@@ -228,6 +229,80 @@ namespace Mandalin
 		}
 
 		/*
+			Before we convert to triangles, we need to sort them so that
+			the hexes in a chunk are all (mostly) contiguous.
+		*/
+		/*std::vector<std::pair<unsigned int, unsigned int>> oldIndices;
+		for (int i = 0; i < hexNodes.size(); i++)
+		{
+			oldIndices.push_back(std::pair<unsigned int, unsigned int>(hexNodes[i].index, 0));
+		}
+
+		std::sort(hexNodes.begin(), hexNodes.end(), CompareDistances);
+
+		for (int i = 0; i < hexNodes.size(); i++)
+		{
+			oldIndices[hexNodes[i].index].second = i;
+		}
+
+		for (int i = 0; i < hexNodes.size(); i++)
+		{
+			for (int j = 0; j < hexNodes[i].neighbors.size(); j++)
+			{
+				hexNodes[i].neighbors[j] = oldIndices[hexNodes[i].neighbors[j]].second;
+			}
+		}
+
+		for (int i = 0; i < hexNodes.size(); i++)
+		{
+			hexNodes[i].index = i;
+		}*/
+
+		std::vector<std::pair<unsigned int, unsigned int>> oldIndices;
+		for (int i = 0; i < hexNodes.size(); i++)
+		{
+			oldIndices.push_back(std::pair<unsigned int, unsigned int>(hexNodes[i].index, 0));
+		}
+
+		// std::sort(hexNodes.begin(), hexNodes.end(), CompareDistances);
+		hexNodes = VoronoiSort(hexNodes, Chunk::MAXHEXES);
+
+		for (int i = 0; i < hexNodes.size(); i++)
+		{
+			oldIndices[hexNodes[i].index].second = i;
+		}
+
+		for (int i = 0; i < hexNodes.size(); i++)
+		{
+			for (int j = 0; j < hexNodes[i].neighbors.size(); j++)
+			{
+				hexNodes[i].neighbors[j] = oldIndices[hexNodes[i].neighbors[j]].second;
+			}
+		}
+
+		for (int i = 0; i < hexNodes.size(); i++)
+		{
+			hexNodes[i].index = i;
+		}
+
+		/*std::vector<HexNode*> orderedHexNodes;
+		for (int i = 0; i < hexNodes.size(); i++) orderedHexNodes.push_back(&hexNodes[i]);
+
+		orderedHexNodes = VoronoiSort(orderedHexNodes, Chunk::MAXHEXES);
+
+		for (int i = 0; i < orderedHexNodes.size(); i++) orderedHexNodes[i]->index = i;
+
+		for (int i = 0; i < hexNodes.size(); i++)
+		{
+			HexNode* hn = &hexNodes[i];
+
+			for (int j = 0; j < hn->neighbors.size(); j++)
+			{
+				hn->neighbors[j] = hexNodes[hn->neighbors[j]].index;
+			}
+		}*/
+
+		/*
 			Now, finally, we go through and convert each hex
 			to triangles. This is temporary, just to ensure that
 			our hexification is working correctly.
@@ -237,8 +312,9 @@ namespace Mandalin
 		for (int i = 0; i < hexNodes.size(); i++)
 		{
 			HexNode* hn = &hexNodes[i];
-
-			glm::vec3 color = glm::vec3((rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f);
+			
+			// glm::vec3 color = glm::vec3((rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f);
+			glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
 
 			std::vector<glm::vec3> verts;
 
@@ -267,22 +343,72 @@ namespace Mandalin
 			}
 		}
 
+		/*
+			Now, we go through and convert these hex nodes to hexes.
+		*/
 		std::cout << "Generated " << triangles.size() << " triangles." << std::endl;
 
-		for (int i = 0; i < triangles.size(); i += Chunk::MAXTRIS)
+		int t = 0;
+		for (int i = 0; i < hexNodes.size(); i += Chunk::MAXHEXES)
 		{
-			unsigned int allotedTris = std::min(Chunk::MAXTRIS, (unsigned int)triangles.size() - i);
+
+			unsigned int allotedHexes = std::min(Chunk::MAXHEXES, (unsigned int)hexNodes.size() - i);
 
 			chunks.push_back({});
-
 			Chunk* c = &chunks[chunks.size() - 1];
 
 			c->index = chunks.size() - 1;
-			c->triCount = allotedTris;
-			for (int j = i; j < i + allotedTris; j++) c->triangles[j - i] = triangles[j];
-		}
+			c->hexCount = allotedHexes;
+			c->triCount = allotedHexes * 6;
 
-		// std::cout << "Done." << std::endl;
+			c->center = glm::vec3(0.0f, 0.0f, 0.0f);
+			for (int j = i; j < i + allotedHexes; j++)
+			{
+				Hex hex =
+				{
+					c->index,
+					j - i,
+					{}
+				};
+
+				for (int k = 0; k < hexNodes[j].neighbors.size(); k++)
+				{
+					std::pair<unsigned int, unsigned int> p =
+					{
+						hexNodes[j].neighbors[k] / Chunk::MAXHEXES,
+						hexNodes[j].neighbors[k] % Chunk::MAXHEXES
+					};
+
+					hex.neighbors.push_back(p);
+				}
+
+				if (hexNodes[j].neighbors.size() == 5) c->triCount--;
+
+				c->center += hexNodes[j].center;
+				c->hexes[j - i] = hex;
+			}
+
+			c->center /= allotedHexes;
+			c->center = polyhedron->radius * glm::normalize(c->center);
+
+			glm::vec3 color = glm::vec3((rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f);
+			for (int j = t; j < t + c->triCount; j++)
+			{
+				triangles[j].a.r = color.r;
+				triangles[j].b.r = color.r;
+				triangles[j].c.r = color.r;
+				triangles[j].a.g = color.g;
+				triangles[j].b.g = color.g;
+				triangles[j].c.g = color.g;
+				triangles[j].a.b = color.b;
+				triangles[j].b.b = color.b;
+				triangles[j].c.b = color.b;
+
+				c->triangles[j - t] = triangles[j];
+			}
+
+			t += c->triCount;
+		}
 	}
 
 	Planet::Planet(unsigned int worldSize)
@@ -292,43 +418,9 @@ namespace Mandalin
 		srand(time(NULL));
 
 		Polyhedron* polyhedron = new Polyhedron(worldSize);
+		this->radius = polyhedron->radius;
 
 		for (int i = 0; i < worldSize; i++) polyhedron->Subdivide();
-
-		/*std::vector<Triangle> triangles;
-
-		for (int j = 0; j < polyhedron->faces.size(); j++)
-		{
-			TriFace tf = polyhedron->faces[j];
-
-			glm::vec3 a = polyhedron->vertices[tf.a].vertex;
-			glm::vec3 b = polyhedron->vertices[tf.b].vertex;
-			glm::vec3 c = polyhedron->vertices[tf.c].vertex;
-
-			glm::vec3 color = glm::vec3((rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f);
-
-			Triangle t =
-			{
-				{ a.x, a.y, a.z, color.r, color.g, color.b, 1.0f },
-				{ b.x, b.y, b.z, color.r, color.g, color.b, 1.0f },
-				{ c.x, c.y, c.z, color.r, color.g, color.b, 1.0f }
-			};
-
-			triangles.push_back(t);
-		}
-
-		for (int i = 0; i < triangles.size(); i += Chunk::MAXTRIS)
-		{
-			unsigned int allotedTris = std::min(Chunk::MAXTRIS, (unsigned int)triangles.size() - i);
-
-			chunks.push_back({});
-
-			Chunk* c = &chunks[chunks.size() - 1];
-
-			c->index = chunks.size() - 1;
-			c->triCount = allotedTris;
-			for (int j = i; j < i + allotedTris; j++) c->triangles[j - i] = triangles[j];
-		}*/
 
 		Hexify(polyhedron);
 	}

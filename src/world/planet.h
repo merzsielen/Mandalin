@@ -1,6 +1,7 @@
 #ifndef WORLD_H
 #define WORLD_H
 
+#include <glad/glad.h>
 #include <glm/glm.hpp>
 
 #include <vector>
@@ -22,6 +23,13 @@ namespace Mandalin
 	{
 	private:
 		/*-----------------------------------------------*/
+		/* Position */
+		/*-----------------------------------------------*/
+		glm::vec3				position = glm::vec3(0.0f, 0.0f, 0.0f);
+		float					radius;
+		unsigned int			totalTriangles;
+
+		/*-----------------------------------------------*/
 		/* Chunks */
 		/*-----------------------------------------------*/
 		/*
@@ -39,10 +47,19 @@ namespace Mandalin
 
 	public:
 		/*-----------------------------------------------*/
+		/* Variable Functions */
+		/*-----------------------------------------------*/
+		glm::vec3				GetPosition() { return position; }
+		float					GetRadius() { return radius; }
+		unsigned int			GetWorldSize() { return worldSize; }
+		unsigned int			GetTotalTriangles() { return totalTriangles; }
+
+		/*-----------------------------------------------*/
 		/* Chunks, Cont. */
 		/*-----------------------------------------------*/
 		unsigned int			ChunkCount() { return chunks.size(); }
 		Chunk*					GetChunk(unsigned int i) { return &chunks[i]; }
+		void					SortChunks();
 
 		/*-----------------------------------------------*/
 		/* World Generation */

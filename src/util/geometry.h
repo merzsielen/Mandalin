@@ -38,6 +38,8 @@ namespace Mandalin
 		unsigned int			a;
 		unsigned int			b;
 		unsigned int			c;
+
+		int						faceOrigin;
 	};
 
 	/*-----------------------------------------------*/
@@ -55,39 +57,6 @@ namespace Mandalin
 	};
 
 	/*-----------------------------------------------*/
-	/* Vertex Node (for World Generation) */
-	/*-----------------------------------------------*/
-	/*
-		Each vertex gets made into a hex whose
-		neighbors are the hexes made from the
-		triangles which share that vertex.
-
-		Only vertex nodes can become pentagons.
-	*/
-	struct VertNode
-	{
-		bool			pentagon;
-		unsigned int	vertIndex;
-		unsigned int	neighborIndices[6];
-	};
-
-	/*-----------------------------------------------*/
-	/* Triangle Node (for World Generation) */
-	/*-----------------------------------------------*/
-	/*
-		Each triangle gets made into a hex whose
-		neighbors are the three hexes made from its
-		vertices and the three hexes made from the
-		triangles which share two vertices with it.
-	*/
-	struct TriNode
-	{
-		unsigned int	triIndex;
-		unsigned int	vertNeighborIndices[3];
-		unsigned int	triNeighborIndices[3];
-	};
-
-	/*-----------------------------------------------*/
 	/* Hex Node (for World Generation) */
 	/*-----------------------------------------------*/
 	struct HexNode
@@ -95,7 +64,15 @@ namespace Mandalin
 		unsigned int				index;
 		glm::vec3					center;
 		std::vector<unsigned int>	neighbors;
+
+		int							faceOrigin;
+		bool						filled = false;
 	};
+
+	bool CompareDistances(HexNode a, HexNode b);
+
+	int GetVoronoiStart(int size, std::vector<int> selectedStarts);
+	std::vector<HexNode> VoronoiSort(std::vector<HexNode> unordered, int desiredCount);
 
 	/*-----------------------------------------------*/
 	/* Rays */

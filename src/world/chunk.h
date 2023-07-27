@@ -2,6 +2,7 @@
 #define CHUNK_H
 
 #include "hex.h"
+#include <glm/glm.hpp>
 
 namespace Mandalin
 {
@@ -57,17 +58,23 @@ namespace Mandalin
 	*/
 	struct Chunk
 	{
-		static constexpr unsigned int MAXHEXES = 100;
-		static constexpr unsigned int MAXTRIS = 1800;
+		static constexpr unsigned int MAXHEXES = 200;
+		static constexpr unsigned int MAXTRIS = 1200;
 
 		unsigned int	index;
+		glm::vec3		center;
+		float			distance = 0.0f;
 
 		unsigned int	triCount;
 		Triangle		triangles[MAXTRIS];
 
 		unsigned int	hexCount;
 		Hex				hexes[MAXHEXES];
+
+		unsigned int	start;
+		unsigned int	stop;
 	};
+
 }
 
 #endif
