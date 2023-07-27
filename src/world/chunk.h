@@ -60,8 +60,9 @@ namespace Mandalin
 	*/
 	struct Chunk
 	{
-		static constexpr unsigned int MAXHEXES = 200;
-		static constexpr unsigned int MAXTRIS = 1200;
+		static constexpr unsigned int MAXHEXES = 100;
+		static constexpr unsigned int TRISPERHEX = 18;
+		static constexpr unsigned int MAXTRIS = (MAXHEXES * TRISPERHEX);
 
 		unsigned int	index;
 		glm::vec3		center;

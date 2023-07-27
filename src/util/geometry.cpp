@@ -217,11 +217,6 @@ namespace Mandalin
 			out[added + 2] = { caI, bcI, cI };
 			out[added + 3] = { abI, bcI, caI };
 
-			//out.push_back({ aI, 0 /* abI */, 0 /* caI */ });
-			//out.push_back({ 0 /* abI */, bI, 0 /* bcI */ });
-			//out.push_back({ 0 /* caI */, 0 /* bcI */, cI });
-			//out.push_back({ 0 /* abI */, 0 /* bcI */, 0 /* caI */ });
-
 			// You could fit my brain in a thimble.
 			unsigned int taI = added;
 			unsigned int tbI = added + 1;
@@ -241,11 +236,6 @@ namespace Mandalin
 			vertices[aI].sharers.push_back(taI);
 			vertices[bI].sharers.push_back(tbI);
 			vertices[cI].sharers.push_back(tcI);
-
-			/*std::cout << aI << std::endl;
-			a->sharers.push_back(taI);
-			b->sharers.push_back(tbI);
-			c->sharers.push_back(tcI);*/
 
 			/*
 				Now we go through and find all the indices

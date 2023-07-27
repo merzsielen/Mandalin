@@ -226,36 +226,6 @@ namespace Mandalin
 			hn->neighbors = sortedNeighbors;
 		}
 
-		/*
-			Before we convert to triangles, we need to sort them so that
-			the hexes in a chunk are all (mostly) contiguous.
-		*/
-		/*std::vector<std::pair<unsigned int, unsigned int>> oldIndices;
-		for (int i = 0; i < hexNodes.size(); i++)
-		{
-			oldIndices.push_back(std::pair<unsigned int, unsigned int>(hexNodes[i].index, 0));
-		}
-
-		std::sort(hexNodes.begin(), hexNodes.end(), CompareDistances);
-
-		for (int i = 0; i < hexNodes.size(); i++)
-		{
-			oldIndices[hexNodes[i].index].second = i;
-		}
-
-		for (int i = 0; i < hexNodes.size(); i++)
-		{
-			for (int j = 0; j < hexNodes[i].neighbors.size(); j++)
-			{
-				hexNodes[i].neighbors[j] = oldIndices[hexNodes[i].neighbors[j]].second;
-			}
-		}
-
-		for (int i = 0; i < hexNodes.size(); i++)
-		{
-			hexNodes[i].index = i;
-		}*/
-
 		std::vector<std::pair<unsigned int, unsigned int>> oldIndices;
 		for (int i = 0; i < hexNodes.size(); i++)
 		{
@@ -283,23 +253,6 @@ namespace Mandalin
 			hexNodes[i].index = i;
 		}
 
-		/*std::vector<HexNode*> orderedHexNodes;
-		for (int i = 0; i < hexNodes.size(); i++) orderedHexNodes.push_back(&hexNodes[i]);
-
-		orderedHexNodes = VoronoiSort(orderedHexNodes, Chunk::MAXHEXES);
-
-		for (int i = 0; i < orderedHexNodes.size(); i++) orderedHexNodes[i]->index = i;
-
-		for (int i = 0; i < hexNodes.size(); i++)
-		{
-			HexNode* hn = &hexNodes[i];
-
-			for (int j = 0; j < hn->neighbors.size(); j++)
-			{
-				hn->neighbors[j] = hexNodes[hn->neighbors[j]].index;
-			}
-		}*/
-
 		/*
 			Now, finally, we go through and convert each hex
 			to triangles. This is temporary, just to ensure that
@@ -311,8 +264,7 @@ namespace Mandalin
 		{
 			HexNode* hn = &hexNodes[i];
 			
-			// glm::vec3 color = glm::vec3((rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f);
-			glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
+			glm::vec3 color = glm::vec3((rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f);
 
 			std::vector<glm::vec3> verts;
 
@@ -324,11 +276,15 @@ namespace Mandalin
 				verts.push_back(polyhedron->radius * glm::normalize((a + b + c) / 3.0f));
 			}
 
+			float rise = (rand() % 10) / 10.0f;
+			glm::vec3 offset = rise * glm::normalize(hn->center);
+
+			// First, we add the top of the hex.
 			for (int j = 0; j < verts.size(); j++)
 			{
-				glm::vec3 a = hn->center;
-				glm::vec3 b = verts[j];
-				glm::vec3 c = verts[(static_cast<unsigned long long>(j) + 1) % verts.size()];
+				glm::vec3 a = hn->center + offset;
+				glm::vec3 b = verts[j] + offset;
+				glm::vec3 c = verts[(static_cast<unsigned long long>(j) + 1) % verts.size()] + offset;
 
 				Triangle t =
 				{
@@ -338,6 +294,33 @@ namespace Mandalin
 				};
 
 				triangles.push_back(t);
+			}
+
+			// And now we add the sides.
+			color = glm::vec3(0.1f, 0.1f, 0.1f);
+			for (int j = 0; j < verts.size(); j++)
+			{
+				glm::vec3 b = verts[j];
+				glm::vec3 a = b + offset;
+				glm::vec3 d = verts[(static_cast<unsigned long long>(j) + 1) % verts.size()];
+				glm::vec3 c = d + offset;
+
+				Triangle adb =
+				{
+					{ a.x, a.y, a.z, color.r, color.g, color.b, 1.0f },
+					{ d.x, d.y, d.z, color.r, color.g, color.b, 1.0f },
+					{ b.x, b.y, b.z, color.r, color.g, color.b, 1.0f }
+				};
+
+				Triangle acd =
+				{
+					{ a.x, a.y, a.z, color.r, color.g, color.b, 1.0f },
+					{ c.x, c.y, c.z, color.r, color.g, color.b, 1.0f },
+					{ d.x, d.y, d.z, color.r, color.g, color.b, 1.0f }
+				};
+
+				triangles.push_back(adb);
+				triangles.push_back(acd);
 			}
 		}
 
@@ -361,7 +344,7 @@ namespace Mandalin
 
 			c->index = chunks.size() - 1;
 			c->hexCount = allotedHexes;
-			c->triCount = allotedHexes * 6;
+			c->triCount = allotedHexes * Chunk::TRISPERHEX;
 
 			c->center = glm::vec3(0.0f, 0.0f, 0.0f);
 			for (int j = i; j < i + allotedHexes; j++)
@@ -384,7 +367,7 @@ namespace Mandalin
 					hex.neighbors.push_back(p);
 				}
 
-				if (hexNodes[j].neighbors.size() == 5) c->triCount--;
+				if (hexNodes[j].neighbors.size() == 5) c->triCount -= 3;
 
 				c->center += hexNodes[j].center;
 				c->hexes[j - i] = hex;
@@ -393,7 +376,7 @@ namespace Mandalin
 			c->center /= allotedHexes;
 			c->center = polyhedron->radius * glm::normalize(c->center);
 
-			glm::vec3 color = glm::vec3((rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f);
+			/*glm::vec3 color = glm::vec3((rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f);
 			for (int j = t; j < t + c->triCount; j++)
 			{
 				triangles[j].a.r = color.r;
@@ -405,7 +388,7 @@ namespace Mandalin
 				triangles[j].a.b = color.b;
 				triangles[j].b.b = color.b;
 				triangles[j].c.b = color.b;
-			}
+			}*/
 
 			GLuint IBO;
 
