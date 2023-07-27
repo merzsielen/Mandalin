@@ -38,8 +38,6 @@ namespace Mandalin
 		unsigned int			a;
 		unsigned int			b;
 		unsigned int			c;
-
-		int						faceOrigin;
 	};
 
 	/*-----------------------------------------------*/
@@ -65,7 +63,6 @@ namespace Mandalin
 		glm::vec3					center;
 		std::vector<unsigned int>	neighbors;
 
-		int							faceOrigin;
 		bool						filled = false;
 	};
 

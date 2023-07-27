@@ -13,9 +13,10 @@ set(BASE_SRCS
     "src/rendering/renderer.h"
     "src/rendering/shader.cpp"
     "src/rendering/shader.h"
+    "src/util/checkerror.cpp"
+    "src/util/checkerror.h"
     "src/util/geometry.cpp"
     "src/util/geometry.h"
-    
     "src/world/chunk.h"
     "src/world/hex.h"
     "src/world/planet.h"

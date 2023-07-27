@@ -1,8 +1,10 @@
 #ifndef CHUNK_H
 #define CHUNK_H
 
-#include "hex.h"
+#include <glad/glad.h>
 #include <glm/glm.hpp>
+
+#include "hex.h"
 
 namespace Mandalin
 {
@@ -66,13 +68,12 @@ namespace Mandalin
 		float			distance = 0.0f;
 
 		unsigned int	triCount;
-		Triangle		triangles[MAXTRIS];
+
+		GLuint			vao;
+		GLuint			vbo;
 
 		unsigned int	hexCount;
 		Hex				hexes[MAXHEXES];
-
-		unsigned int	start;
-		unsigned int	stop;
 	};
 
 }

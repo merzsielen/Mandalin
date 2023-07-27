@@ -4,6 +4,8 @@
 #include <glm/gtx/norm.hpp>
 #include <algorithm>
 #include <iostream>
+#include <unordered_map>
+#include <glm/gtx/hash.hpp>
 
 namespace Mandalin
 {
@@ -77,7 +79,6 @@ namespace Mandalin
 						{
 							hn->filled = true;
 							newNodes.push_back(*hn);
-							hn->faceOrigin = i;
 							filled++;
 						}
 					}
@@ -98,9 +99,21 @@ namespace Mandalin
 		return out;
 	}
 
+	struct Vec3Hash
+	{
+		size_t operator()(const glm::vec3& v) const
+		{
+			return std::hash<glm::vec3>()(v);
+		}
+	};
+
 	void Polyhedron::Subdivide()
 	{
+		int added = 0;
 		std::vector<TriFace> out;
+		out.reserve(faces.size() * 4);
+
+		std::unordered_map<glm::vec3, unsigned int, Vec3Hash> vertexMap;
 
 		for (int i = 0; i < vertices.size(); i++)
 		{
@@ -138,11 +151,59 @@ namespace Mandalin
 				We need to find out where each new
 				vertex will be.
 			*/
-			unsigned int abI, bcI, caI;
+			unsigned int abI = 0;
+			unsigned int bcI = 0;
+			unsigned int caI = 0;
 
 			PolyVert midAB = { radius * glm::normalize((a->vertex + b->vertex) / 2.0f), {} };
 			PolyVert midBC = { radius * glm::normalize((b->vertex + c->vertex) / 2.0f), {} };
 			PolyVert midCA = { radius * glm::normalize((c->vertex + a->vertex) / 2.0f), {} };
+
+			/*--------------------------------------------*/
+			/* Find Midpoint Indices                      */
+			/*--------------------------------------------*/
+			bool foundAB = false;
+			bool foundBC = false;
+			bool foundCA = false;
+
+			auto itAB = vertexMap.find(midAB.vertex);
+			if (itAB == vertexMap.end())
+			{
+				abI = vertices.size();
+				vertexMap[midAB.vertex] = abI;
+				vertices.push_back(midAB);
+			}
+			else
+			{
+				foundAB = true;
+				abI = itAB->second;
+			}
+
+			auto itBC = vertexMap.find(midBC.vertex);
+			if (itBC == vertexMap.end())
+			{
+				bcI = vertices.size();
+				vertexMap[midBC.vertex] = bcI;
+				vertices.push_back(midBC);
+			}
+			else
+			{
+				foundBC = true;
+				bcI = itBC->second;
+			}
+
+			auto itCA = vertexMap.find(midCA.vertex);
+			if (itCA == vertexMap.end())
+			{
+				caI = vertices.size();
+				vertexMap[midCA.vertex] = caI;
+				vertices.push_back(midCA);
+			}
+			else
+			{
+				foundCA = true;
+				caI = itCA->second;
+			}
 
 			/*--------------------------------------------*/
 			/* Finding Triangles                          */
@@ -151,16 +212,23 @@ namespace Mandalin
 				My brain is a little scattered today
 				bear with me.
 			*/
-			out.push_back({ aI, 0 /* abI */, 0 /* caI */, faces[i].faceOrigin });
-			out.push_back({ 0 /* abI */, bI, 0 /* bcI */, faces[i].faceOrigin });
-			out.push_back({ 0 /* caI */, 0 /* bcI */, cI, faces[i].faceOrigin });
-			out.push_back({ 0 /* abI */, 0 /* bcI */, 0 /* caI */, faces[i].faceOrigin });
+			out[added] = { aI, abI, caI };
+			out[added + 1] = { abI, bI, bcI };
+			out[added + 2] = { caI, bcI, cI };
+			out[added + 3] = { abI, bcI, caI };
+
+			//out.push_back({ aI, 0 /* abI */, 0 /* caI */ });
+			//out.push_back({ 0 /* abI */, bI, 0 /* bcI */ });
+			//out.push_back({ 0 /* caI */, 0 /* bcI */, cI });
+			//out.push_back({ 0 /* abI */, 0 /* bcI */, 0 /* caI */ });
 
 			// You could fit my brain in a thimble.
-			unsigned int taI = out.size() - 4;
-			unsigned int tbI = out.size() - 3;
-			unsigned int tcI = out.size() - 2;
-			unsigned int tdI = out.size() - 1;
+			unsigned int taI = added;
+			unsigned int tbI = added + 1;
+			unsigned int tcI = added + 2;
+			unsigned int tdI = added + 3;
+			added += 4;
+
 			TriFace* ta = &out[taI];
 			TriFace* tb = &out[tbI];
 			TriFace* tc = &out[tcI];
@@ -170,93 +238,33 @@ namespace Mandalin
 				First we're going to add these triangles to
 				the vertices we already have indices for.
 			*/
+			vertices[aI].sharers.push_back(taI);
+			vertices[bI].sharers.push_back(tbI);
+			vertices[cI].sharers.push_back(tcI);
+
+			/*std::cout << aI << std::endl;
 			a->sharers.push_back(taI);
 			b->sharers.push_back(tbI);
-			c->sharers.push_back(tcI);
+			c->sharers.push_back(tcI);*/
 
 			/*
 				Now we go through and find all the indices
 				for the vertices we just added.
 			*/
-			bool foundAB = false;
-			bool foundBC = false;
-			bool foundCA = false;
-
-			for (int i = 0; i < vertices.size(); i++)
-			{
-				PolyVert* pv = &vertices[i];
-
-				if (pv->vertex == midAB.vertex)
-				{
-					foundAB = true;
-					ta->b = i;
-					tb->a = i;
-					td->a = i;
-					pv->sharers.push_back(taI);
-					pv->sharers.push_back(tbI);
-					pv->sharers.push_back(tdI);
-				}
-				else if (pv->vertex == midBC.vertex)
-				{
-					foundBC = true;
-					tb->c = i;
-					tc->b = i;
-					td->b = i;
-					pv->sharers.push_back(tbI);
-					pv->sharers.push_back(tcI);
-					pv->sharers.push_back(tdI);
-				}
-				else if (pv->vertex == midCA.vertex)
-				{
-					foundCA = true;
-					tc->a = i;
-					td->c = i;
-					ta->c = i;
-					pv->sharers.push_back(tcI);
-					pv->sharers.push_back(tdI);
-					pv->sharers.push_back(taI);
-				}
-			}
-
-			int ind = vertices.size();
-			if (!foundAB)
-			{
-				abI = ind++;
-				ta->b = abI;
-				tb->a = abI;
-				td->a = abI;
-				midAB.sharers.push_back(taI);
-				midAB.sharers.push_back(tbI);
-				midAB.sharers.push_back(tdI);
-				vertices.push_back(midAB);
-			}
-			if (!foundBC)
-			{
-				bcI = ind++;
-				tb->c = bcI;
-				tc->b = bcI;
-				td->b = bcI;
-				midBC.sharers.push_back(tbI);
-				midBC.sharers.push_back(tcI);
-				midBC.sharers.push_back(tdI);
-				vertices.push_back(midBC);
-			}
-			if (!foundCA)
-			{
-				caI = ind++;
-				tc->a = caI;
-				td->c = caI;
-				ta->c = caI;
-				midCA.sharers.push_back(tcI);
-				midCA.sharers.push_back(tdI);
-				midCA.sharers.push_back(taI);
-				vertices.push_back(midCA);
-			}
+			vertices[abI].sharers.push_back(taI);
+			vertices[abI].sharers.push_back(tbI);
+			vertices[abI].sharers.push_back(tdI);
+			vertices[bcI].sharers.push_back(tbI);
+			vertices[bcI].sharers.push_back(tcI);
+			vertices[bcI].sharers.push_back(tdI);
+			vertices[caI].sharers.push_back(tcI);
+			vertices[caI].sharers.push_back(tdI);
+			vertices[caI].sharers.push_back(taI);
 		}
 
 		faces.clear();	// I don't think this is strictly necessary.
 						// But also, what the heck.
-		faces = out;
+		for (int i = 0; i < added; i++) faces.push_back(out[i]);
 	}
 
 	Polyhedron::Polyhedron(int worldSize)
@@ -280,10 +288,10 @@ namespace Mandalin
 
 		faces =
 		{
-			{ 0, 4, 1, 0 }, { 0, 9, 4, 1 }, { 9, 5, 4, 2 }, { 4, 5, 8, 3 }, { 4, 8, 1, 4 },
-			{ 8, 10, 1, 5 }, { 8, 3, 10, 6 }, { 5, 3, 8, 7 }, { 5, 2, 3, 8 }, { 2, 7, 3, 9 },
-			{ 7, 10, 3, 10 },{ 7, 6, 10, 11 }, { 7, 11, 6, 12 }, { 11, 0, 6, 13 }, { 0, 1, 6, 14 },
-			{ 6, 1, 10, 15 }, { 9, 0, 11, 16 }, { 9, 11, 2, 17 }, { 9, 2, 5, 18 }, { 7, 2, 11, 19 }
+			{ 0, 4, 1 }, { 0, 9, 4 }, { 9, 5, 4 }, { 4, 5, 8 }, { 4, 8, 1 },
+			{ 8, 10, 1 }, { 8, 3, 10 }, { 5, 3, 8 }, { 5, 2, 3 }, { 2, 7, 3 },
+			{ 7, 10, 3 },{ 7, 6, 10 }, { 7, 11, 6 }, { 11, 0, 6 }, { 0, 1, 6 },
+			{ 6, 1, 10 }, { 9, 0, 11 }, { 9, 11, 2 }, { 9, 2, 5 }, { 7, 2, 11 }
 		};
 
 		for (int i = 0; i < vertices.size(); i++)

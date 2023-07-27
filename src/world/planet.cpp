@@ -63,8 +63,7 @@ namespace Mandalin
 			{
 				i,
 				pv->vertex,
-				neighborIndices,
-				polyhedron->faces[pv->sharers[0]].faceOrigin
+				neighborIndices
 			};
 
 			hexNodes.push_back(hn);
@@ -168,8 +167,7 @@ namespace Mandalin
 			{
 				i + polyhedron->vertices.size(),
 				center,
-				neighborIndices,
-				tf->faceOrigin
+				neighborIndices
 			};
 
 			hexNodes.push_back(hn);
@@ -348,10 +346,14 @@ namespace Mandalin
 		*/
 		std::cout << "Generated " << triangles.size() << " triangles." << std::endl;
 
+		/*
+			Since we're going to be modifying the chunks' vbos, we need to
+			bind the vao of the renderer first.
+		*/
+
 		int t = 0;
 		for (int i = 0; i < hexNodes.size(); i += Chunk::MAXHEXES)
 		{
-
 			unsigned int allotedHexes = std::min(Chunk::MAXHEXES, (unsigned int)hexNodes.size() - i);
 
 			chunks.push_back({});
@@ -403,12 +405,49 @@ namespace Mandalin
 				triangles[j].a.b = color.b;
 				triangles[j].b.b = color.b;
 				triangles[j].c.b = color.b;
-
-				c->triangles[j - t] = triangles[j];
 			}
+
+			GLuint IBO;
+
+			glGenVertexArrays(1, &c->vao);
+			glBindVertexArray(c->vao);
+
+			glGenBuffers(1, &c->vbo);
+			glBindBuffer(GL_ARRAY_BUFFER, c->vbo);
+
+			glGenBuffers(1, &IBO);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+
+			glBufferData(GL_ARRAY_BUFFER, c->triCount * sizeof(Triangle), &triangles[t], GL_DYNAMIC_DRAW);
+
+			// Coordinates
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, x));
+			glEnableVertexAttribArray(0);
+
+			// Color
+			glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, r));
+			glEnableVertexAttribArray(1);
+
+			unsigned int indices[Chunk::MAXTRIS * 3];
+			for (int i = 0; i < Chunk::MAXTRIS; i++)
+			{
+				const int offset = 3 * i;
+
+				indices[offset + 0] = offset + 0;
+				indices[offset + 1] = offset + 1;
+				indices[offset + 2] = offset + 2;
+			}
+
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+			glBindVertexArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 			t += c->triCount;
 		}
+
+		glBindVertexArray(0);
 	}
 
 	Planet::Planet(unsigned int worldSize)

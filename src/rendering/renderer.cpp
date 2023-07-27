@@ -48,14 +48,15 @@ namespace Mandalin
 
 			if (theta < highestTheta)
 			{
-				glBindVertexArray(VAO);
-				glBindBuffer(GL_ARRAY_BUFFER, VBO);
-				glBufferSubData(GL_ARRAY_BUFFER, 0, c->triCount * sizeof(Triangle), &c->triangles[0]);
+				glBindVertexArray(c->vao);
+				glBindBuffer(GL_ARRAY_BUFFER, c->vbo);
 				glDrawElements(GL_TRIANGLES, c->triCount * 3, GL_UNSIGNED_INT, nullptr);
 			}
 		}
 
-		// std::cout << relCamDistance << std::endl;
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glUseProgram(0);
 	}
 
 	/*-----------------------------------------------*/

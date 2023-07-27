@@ -8,6 +8,7 @@
 
 #include "chunk.h"
 #include "../util/geometry.h"
+#include "../util/checkerror.h"
 
 namespace Mandalin
 {
