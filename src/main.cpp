@@ -78,7 +78,7 @@ void main()
 		Now we're going to fire up rendering:
 		camera, renderer, etc.
 	*/
-	Mandalin::Camera* camera = new Mandalin::Camera({ 0, 0, 0 }, { 1, 0, 0, 0 }, 1.0f, window);
+	Mandalin::Camera* camera = new Mandalin::Camera({ 0, 1, -1 }, { 1, 0, 0, 0 }, 1.0f, window);
 	Mandalin::Renderer* renderer = new Mandalin::Renderer(camera);
 	Mandalin::Planet* planet = new Mandalin::Planet(6);
 

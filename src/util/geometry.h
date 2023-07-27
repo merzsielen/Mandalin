@@ -64,6 +64,8 @@ namespace Mandalin
 		std::vector<unsigned int>	neighbors;
 
 		bool						filled = false;
+		bool						extruded = false;
+		int							continent = -1;
 	};
 
 	bool CompareDistances(HexNode a, HexNode b);

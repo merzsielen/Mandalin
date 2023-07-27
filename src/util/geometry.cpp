@@ -78,8 +78,13 @@ namespace Mandalin
 						if (hn->filled == false)
 						{
 							hn->filled = true;
+							hn->continent = i;
 							newNodes.push_back(*hn);
 							filled++;
+						}
+						else
+						{
+							hn->extruded = true;
 						}
 					}
 				}

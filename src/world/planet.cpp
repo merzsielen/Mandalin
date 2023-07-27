@@ -233,7 +233,7 @@ namespace Mandalin
 		}
 
 		// std::sort(hexNodes.begin(), hexNodes.end(), CompareDistances);
-		hexNodes = VoronoiSort(hexNodes, Chunk::MAXHEXES);
+		hexNodes = VoronoiSort(hexNodes, worldSize * Chunk::MAXHEXES);
 
 		for (int i = 0; i < hexNodes.size(); i++)
 		{
@@ -255,36 +255,60 @@ namespace Mandalin
 
 		/*
 			Now, finally, we go through and convert each hex
-			to triangles. This is temporary, just to ensure that
-			our hexification is working correctly.
+			to triangles.
 		*/
 		std::vector<Triangle> triangles;
+
+		int continentCount = hexNodes.size() / Chunk::MAXHEXES;
+
+		std::vector<int> oceans;
+		std::vector<float> rises;
+
+		for (int i = 0; i < continentCount; i++)
+		{
+			oceans.push_back((rand() % 100) + 1);
+			rises.push_back((rand() % 5) / 10.0f);
+			// rises.push_back(0.0f);
+		}
 
 		for (int i = 0; i < hexNodes.size(); i++)
 		{
 			HexNode* hn = &hexNodes[i];
-			
-			glm::vec3 color = glm::vec3((rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f);
+
+			bool ocean = (oceans[hn->continent] > 50);
+			float rise = rises[hn->continent];
+			if (ocean) rise = -1.0f;
+			glm::vec3 offset = rise * glm::normalize(hn->center);
+
+			// glm::vec3 color = glm::vec3((rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f);
+			glm::vec3 color = glm::vec3(0.05f, 0.73f, 0.28f);
+			if (ocean) color = glm::vec3(0.0f, 0.0f, 1.0f);
 
 			std::vector<glm::vec3> verts;
 
 			for (int j = 0; j < hn->neighbors.size(); j++)
 			{
-				glm::vec3 a = hn->center;
-				glm::vec3 b = hexNodes[hn->neighbors[j]].center;
-				glm::vec3 c = hexNodes[hn->neighbors[(j + 1) % hn->neighbors.size()]].center;
-				verts.push_back(polyhedron->radius * glm::normalize((a + b + c) / 3.0f));
-			}
+				HexNode* neighbor1 = &hexNodes[hn->neighbors[j]];
+				HexNode* neighbor2 = &hexNodes[hn->neighbors[(j + 1) % hn->neighbors.size()]];
+				bool sameCont1 = (hn->continent == neighbor1->continent);
+				bool sameCont2 = (hn->continent == neighbor2->continent);
 
-			float rise = (rand() % 10) / 10.0f;
-			glm::vec3 offset = rise * glm::normalize(hn->center);
+				glm::vec3 offset1 = sameCont1 ? rise * glm::normalize(neighbor1->center) : offset;
+				glm::vec3 offset2 = sameCont2 ? rise * glm::normalize(neighbor2->center) : offset;
+
+				glm::vec3 a = hn->center + offset;
+				glm::vec3 b = neighbor1->center + offset1;
+				glm::vec3 c = neighbor2->center + offset2;
+				// verts.push_back(polyhedron->radius * glm::normalize((a + b + c) / 3.0f));
+				verts.push_back((a + b + c) / 3.0f);
+			}
 
 			// First, we add the top of the hex.
 			for (int j = 0; j < verts.size(); j++)
 			{
 				glm::vec3 a = hn->center + offset;
-				glm::vec3 b = verts[j] + offset;
-				glm::vec3 c = verts[(static_cast<unsigned long long>(j) + 1) % verts.size()] + offset;
+				glm::vec3 b = verts[j];
+				glm::vec3 c = verts[(static_cast<unsigned long long>(j) + 1) % verts.size()];
 
 				Triangle t =
 				{
@@ -297,13 +321,16 @@ namespace Mandalin
 			}
 
 			// And now we add the sides.
-			color = glm::vec3(0.1f, 0.1f, 0.1f);
+			color /= 2.0f;
+
+			glm::vec3 onset = -((radius / 4.0f) * glm::normalize(hn->center));
+
 			for (int j = 0; j < verts.size(); j++)
 			{
-				glm::vec3 b = verts[j];
-				glm::vec3 a = b + offset;
-				glm::vec3 d = verts[(static_cast<unsigned long long>(j) + 1) % verts.size()];
-				glm::vec3 c = d + offset;
+				glm::vec3 a = verts[j];
+				glm::vec3 b = a + onset;
+				glm::vec3 c = verts[(static_cast<unsigned long long>(j) + 1) % verts.size()];
+				glm::vec3 d = c + onset;
 
 				Triangle adb =
 				{

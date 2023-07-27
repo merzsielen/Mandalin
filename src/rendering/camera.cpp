@@ -8,21 +8,27 @@ namespace Mandalin
 	/*-----------------------------------------------*/
 	void Camera::HandleInput(float deltaTime)
 	{
-		bool moveUp = (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
-		bool moveDown = ((glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) && !moveUp);
-		bool moveLeft = (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);
-		bool moveRight = ((glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) && !moveLeft);
+		bool lookUp = (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
+		bool lookDown = ((glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) && !lookUp);
 		bool moveIn = (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS);
 		bool moveOut = ((glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) && !moveIn);
-
-		if (moveUp) position.y += 100.0f * zoom * deltaTime;
-		else if (moveDown) position.y -= 100.0f * zoom * deltaTime;
-
-		if (moveRight) position.x += 100.0f * zoom * deltaTime;
-		else if (moveLeft) position.x -= 100.0f * zoom * deltaTime;
+		bool lookRight = (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS);
+		bool lookLeft = ((glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) && !lookRight);
 
 		if (moveIn) position.z += 100.0f * zoom * deltaTime;
 		else if (moveOut) position.z -= 100.0f * zoom * deltaTime;
+
+		Quaternion q = { 2.0f * deltaTime, 1, 0, 0 };
+		Quaternion q2 = { 2.0f * -deltaTime, 1, 0, 0 };
+		if (lookUp) rotation = rotation * q;
+		else if (lookDown) rotation = rotation * q2;
+
+		q = { 0.5f * deltaTime, 0, 1, 0 };
+		q2 = { 0.5f * -deltaTime, 0, 1, 0 };
+		if (lookRight) rotation = rotation * q;
+		else if (lookLeft) rotation = rotation * q2;
+
+		NormalizeQuaternion(rotation);
 	}
 
 	/*-----------------------------------------------*/
