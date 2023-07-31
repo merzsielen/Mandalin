@@ -27,7 +27,7 @@ namespace Mandalin
 		shaders[0].Use();
 		shaders[0].SetMatrix("MVP", camera->GetViewProjection());
 
-		glm::vec3 camPos = camera->GetPosition();
+		glm::vec3 camPos = -camera->GetPosition();
 		glm::vec3 planetPos = planet->GetPosition();
 
 		float relCamDistance = glm::distance(camPos, planetPos) / planet->GetRadius();

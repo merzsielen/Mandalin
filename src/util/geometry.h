@@ -97,6 +97,42 @@ namespace Mandalin
 		float y;
 		float z;
 
+		Quaternion()
+		{
+			this->w = 1.0f;
+			this->x = 0.0f;
+			this->y = 0.0f;
+			this->z = 0.0f;
+		}
+
+		Quaternion(float w, float x, float y, float z)
+		{
+			this->w = w;
+			this->x = x;
+			this->y = y;
+			this->z = z;
+		}
+
+		Quaternion(glm::vec3 axis, float angle)
+		{
+			float h = angle * 0.5f;
+			glm::vec3 v = axis * glm::sin(h);
+
+			this->w = glm::cos(h);
+			this->x = v.x;
+			this->y = v.y;
+			this->z = v.z;
+
+			/*float halfAngle = angle / 2.0f;
+			float s = sinf(halfAngle);
+			axis = glm::normalize(axis);
+
+			this->w = cosf(halfAngle);
+			this->x = axis.x * s;
+			this->y = axis.y * s;
+			this->z = axis.z * s;*/
+		}
+
 		Quaternion operator*(const Quaternion& rhs) const noexcept
 		{
 			Quaternion q = { 0, 0, 0, 0 };
@@ -123,6 +159,8 @@ namespace Mandalin
 	/*-----------------------------------------------*/
 	Quaternion Slerp(Quaternion q, Quaternion r, float step);
 	float QuaternionDistance(Quaternion l, Quaternion r);
+
+	Quaternion LookAt(glm::vec3 position, glm::vec3 target);
 
 	void NormalizeQuaternion(Quaternion& q);
 	Quaternion EulerToQuaternion(glm::vec3 e);

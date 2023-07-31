@@ -268,7 +268,6 @@ namespace Mandalin
 		{
 			oceans.push_back((rand() % 100) + 1);
 			rises.push_back((rand() % 5) / 10.0f);
-			// rises.push_back(0.0f);
 		}
 
 		for (int i = 0; i < hexNodes.size(); i++)
@@ -299,7 +298,6 @@ namespace Mandalin
 				glm::vec3 a = hn->center + offset;
 				glm::vec3 b = neighbor1->center + offset1;
 				glm::vec3 c = neighbor2->center + offset2;
-				// verts.push_back(polyhedron->radius * glm::normalize((a + b + c) / 3.0f));
 				verts.push_back((a + b + c) / 3.0f);
 			}
 

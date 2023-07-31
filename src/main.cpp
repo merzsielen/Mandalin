@@ -78,7 +78,7 @@ void main()
 		Now we're going to fire up rendering:
 		camera, renderer, etc.
 	*/
-	Mandalin::Camera* camera = new Mandalin::Camera({ 0, 1, -1 }, { 1, 0, 0, 0 }, 1.0f, window);
+	Mandalin::Camera* camera = new Mandalin::Camera({ 0, 1, 113.144f }, { 1, 0, 0, 0 }, 1.0f, window);
 	Mandalin::Renderer* renderer = new Mandalin::Renderer(camera);
 	Mandalin::Planet* planet = new Mandalin::Planet(6);
 
@@ -101,8 +101,13 @@ void main()
 		if (diff >= std::chrono::seconds(1))
 		{
 			start = now;
-			std::cout << "Frame Count: " + std::to_string(frameCount) << std::endl;
+			std::cout << "Frame Count: " << frameCount << std::endl;
 			frameCount = 0;
+
+			/*glm::vec3 camPos = camera->GetPosition();
+			Mandalin::Quaternion camQ = camera->GetRotation();
+			std::cout << "Camera Position: " << camPos.x << " / " << camPos.y << " / " << camPos.z << std::endl;
+			std::cout << "Camera Rotation: " << camQ.w << " / " << camQ.x << " / " << camQ.y << " / " << camQ.z << std::endl;*/
 		}
 
 		camera->Update(deltaTime);

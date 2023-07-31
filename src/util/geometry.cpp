@@ -353,6 +353,24 @@ namespace Mandalin
 		return glm::length2(refL - refR);
 	}
 
+	Quaternion LookAt(glm::vec3 position, glm::vec3 target)
+	{
+		glm::vec3 trueUp = glm::vec3(0.0f, 1.0f, 0.0f);
+		glm::vec3 trueForward = glm::vec3(0.0f, 0.0f, 1.0f);
+
+		glm::vec3 forward = glm::normalize(target - position);
+
+		float dot = glm::dot(trueForward, forward);
+		float err = 0.000001f;
+
+		if (fabsf(dot + 1.0f) < err) return Quaternion(M_PI, trueUp.x, trueUp.y, trueUp.z);
+		else if (fabsf(dot - 1.0f) < err) return Quaternion(1, 0, 0, 0);
+
+		float rotAngle = acosf(dot);
+		glm::vec3 rotAxis = glm::normalize(glm::cross(trueForward, forward));
+		return Quaternion(rotAxis, rotAngle);
+	}
+
 	void NormalizeQuaternion(Quaternion& q)
 	{
 		float mag = sqrt(q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z);

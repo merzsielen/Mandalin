@@ -40,12 +40,19 @@ namespace Mandalin
 
 		float				fov = 180.0f;
 		float				nearClip = 0.01f;
-		float				farClip = 15000.0f;
+		float				farClip = 15000.0f; // 150.0f
 
 		/*-----------------------------------------------*/
 		/* Max Chunk Render Distance */
 		/*-----------------------------------------------*/
 		float				maxChunkDistance = 100.0f;
+
+		/*-----------------------------------------------*/
+		/* Speed & Distance */
+		/*-----------------------------------------------*/
+		float				movementSpeed = 100.0f;
+		float				minCameraDistance = 100.0f;
+		float				maxCameraDistance = 500.0f;
 
 		/*-----------------------------------------------*/
 		/* Projection & View */
@@ -73,7 +80,8 @@ namespace Mandalin
 		void				SetZoom(float z) { zoom = z; }
 
 		void				UpdateRotation() { NormalizeQuaternion(rotation); }
-		glm::vec3			CameraForward() { return Rotate({ 0.0f, 0.0f, -1.0f }, rotation); }
+		glm::vec3			CameraRight() { return Rotate({ 1.0f, 0.0f, 0.0f }, rotation); }
+		glm::vec3			CameraForward() { return Rotate({ 0.0f, 0.0f, 1.0f }, rotation); }
 		glm::vec3			CameraUp() { return Rotate({ 0.0f, 1.0f, 0.0f }, rotation); }
 
 		/*-----------------------------------------------*/
