@@ -64,7 +64,8 @@ namespace Mandalin
 		std::vector<unsigned int>	neighbors;
 
 		bool						filled = false;
-		bool						extruded = false;
+		bool						fault = false;
+		bool						ocean = false;
 		int							continent = -1;
 	};
 
@@ -122,15 +123,6 @@ namespace Mandalin
 			this->x = v.x;
 			this->y = v.y;
 			this->z = v.z;
-
-			/*float halfAngle = angle / 2.0f;
-			float s = sinf(halfAngle);
-			axis = glm::normalize(axis);
-
-			this->w = cosf(halfAngle);
-			this->x = axis.x * s;
-			this->y = axis.y * s;
-			this->z = axis.z * s;*/
 		}
 
 		Quaternion operator*(const Quaternion& rhs) const noexcept

@@ -40,7 +40,7 @@ namespace Mandalin
 
 		float				fov = 180.0f;
 		float				nearClip = 0.01f;
-		float				farClip = 15000.0f; // 150.0f
+		float				farClip = 150.0f;
 
 		/*-----------------------------------------------*/
 		/* Max Chunk Render Distance */
@@ -52,7 +52,7 @@ namespace Mandalin
 		/*-----------------------------------------------*/
 		float				movementSpeed = 100.0f;
 		float				minCameraDistance = 100.0f;
-		float				maxCameraDistance = 500.0f;
+		float				maxCameraDistance = 200.0f;
 
 		/*-----------------------------------------------*/
 		/* Projection & View */

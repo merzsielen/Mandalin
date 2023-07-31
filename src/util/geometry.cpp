@@ -84,7 +84,7 @@ namespace Mandalin
 						}
 						else
 						{
-							hn->extruded = true;
+							hn->fault = true;
 						}
 					}
 				}
@@ -218,9 +218,9 @@ namespace Mandalin
 				bear with me.
 			*/
 			out[added] = { aI, abI, caI };
-			out[added + 1] = { abI, bI, bcI };
-			out[added + 2] = { caI, bcI, cI };
-			out[added + 3] = { abI, bcI, caI };
+			out[static_cast<std::vector<Mandalin::TriFace, std::allocator<Mandalin::TriFace>>::size_type>(added) + 1] = { abI, bI, bcI };
+			out[static_cast<std::vector<Mandalin::TriFace, std::allocator<Mandalin::TriFace>>::size_type>(added) + 2] = { caI, bcI, cI };
+			out[static_cast<std::vector<Mandalin::TriFace, std::allocator<Mandalin::TriFace>>::size_type>(added) + 3] = { abI, bcI, caI };
 
 			// You could fit my brain in a thimble.
 			unsigned int taI = added;

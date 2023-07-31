@@ -74,10 +74,9 @@ namespace Mandalin
 			(Next follows tectonic plates, temperature,
 			wind, currents, biomes, etc.)
 		*/
-		/*---------------------*/
-		/* Geometry Generation */
-		/*---------------------*/
-		void					Hexify(Polyhedron* polyhedron);
+		std::vector<HexNode>	Hexify(Polyhedron* polyhedron);
+		std::vector<HexNode>	SortNeighbors(std::vector<HexNode> hexNodes);
+		void					GenerateGeometry(std::vector<HexNode> hexNodes);
 
 		/*---------------------*/
 		/* Constructor         */

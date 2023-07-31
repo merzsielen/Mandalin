@@ -25,6 +25,10 @@ namespace Mandalin
 		// within it.
 		unsigned int	chunk;
 		unsigned int	index;
+
+		// General Location Information
+		bool			fault;
+		bool			ocean;
 		
 		// The chunk indices of each neighbor followed by
 		// their indices within that chunk.

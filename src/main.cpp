@@ -105,8 +105,9 @@ void main()
 			frameCount = 0;
 
 			/*glm::vec3 camPos = camera->GetPosition();
+			float dist = glm::length(camPos);
 			Mandalin::Quaternion camQ = camera->GetRotation();
-			std::cout << "Camera Position: " << camPos.x << " / " << camPos.y << " / " << camPos.z << std::endl;
+			std::cout << "Camera Position: " << camPos.x << " / " << camPos.y << " / " << camPos.z << " :: " << dist << std::endl;
 			std::cout << "Camera Rotation: " << camQ.w << " / " << camQ.x << " / " << camQ.y << " / " << camQ.z << std::endl;*/
 		}
 

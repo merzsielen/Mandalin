@@ -6,21 +6,25 @@
 
 namespace Mandalin
 {
-	void Planet::Hexify(Polyhedron* polyhedron)
+	std::vector<HexNode> Planet::Hexify(Polyhedron* polyhedron)
 	{
 		/*
-			First, we have to turn our tri-faces into hexes.
+			First, we have to turn our polyhedron into hexes.
 			Then, we feed those into our chunks.
 			This is probably going to be computationally
 			expensive as we also need to determine the
 			neighbors of each hex.
+
+			Right now, this function is kinda *thick*, so I'd
+			like to find some way to break it down into smaller
+			functions so it is more readable.
 		*/
 
 		/*
 			So, we are given a list of vertices and triangles
 			(composed of the indices of their vertices) and
 			are tasked with doing a few things:
-			
+
 				- Find all the triangles which share each vertex.
 				- Use this information to create all the hexes.
 				- Divide them into chunks.
@@ -78,7 +82,7 @@ namespace Mandalin
 
 			/*
 				Each hex derived from a face has six neighbors:
-					
+
 					3 derived from vertices
 					3 derived from triangles
 
@@ -174,7 +178,11 @@ namespace Mandalin
 		}
 
 		std::cout << "Generated " << hexNodes.size() << " hexes." << std::endl;
+		return hexNodes;
+	}
 
+	std::vector<HexNode> Planet::SortNeighbors(std::vector<HexNode> hexNodes)
+	{
 		/*
 			Now, we need to go through and sort each hex's neighbors.
 
@@ -253,6 +261,11 @@ namespace Mandalin
 			hexNodes[i].index = i;
 		}
 
+		return hexNodes;
+	}
+
+	void Planet::GenerateGeometry(std::vector<HexNode> hexNodes)
+	{
 		/*
 			Now, finally, we go through and convert each hex
 			to triangles.
@@ -262,29 +275,68 @@ namespace Mandalin
 		int continentCount = hexNodes.size() / Chunk::MAXHEXES;
 
 		std::vector<int> oceans;
-		std::vector<float> rises;
 
 		for (int i = 0; i < continentCount; i++)
 		{
 			oceans.push_back((rand() % 100) + 1);
-			rises.push_back((rand() % 5) / 10.0f);
 		}
 
+		/*
+			Before we convert to triangles, we're actually going
+			to roughen up the coastlines a bit.
+			Sadly, this means looping over the nodes a few too
+			many times.
+			First, we have to set all the oceans.
+		*/
+		for (int i = 0; i < hexNodes.size(); i++)
+		{
+			HexNode* hn = &hexNodes[i];
+			hn->ocean = (oceans[hn->continent] > 50);
+		}
+
+		for (int iter = 0; iter < 10; iter++)
+		{
+			for (int i = 0; i < hexNodes.size(); i++)
+			{
+				HexNode* hn = &hexNodes[i];
+
+				// Now we see how many ocean and land
+				// neighbors this node has.
+				int oceanNeighbors = 0;
+				int landNeighbors = 0;
+
+				for (int j = 0; j < hn->neighbors.size(); j++)
+				{
+					HexNode* neighbor = &hexNodes[hn->neighbors[j]];
+
+					if (neighbor->ocean) oceanNeighbors++;
+					else landNeighbors++;
+				}
+
+				int r = rand() % 9 + 1;
+				if (!hn->ocean && r < oceanNeighbors) hn->ocean = true;
+				else if (hn->ocean && r < landNeighbors) hn->ocean = false;
+			}
+		}
+
+		/*
+			And *now* we go through and convert to triangles.
+		*/
 		for (int i = 0; i < hexNodes.size(); i++)
 		{
 			HexNode* hn = &hexNodes[i];
 
-			bool ocean = (oceans[hn->continent] > 50);
-			float rise = rises[hn->continent];
-			if (ocean) rise = -1.0f;
+			float rise = 0.5f;
+			if (hn->ocean) rise = -1.0f;
 			glm::vec3 offset = rise * glm::normalize(hn->center);
 
 			// glm::vec3 color = glm::vec3((rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f);
 			glm::vec3 color = glm::vec3(0.05f, 0.73f, 0.28f);
-			if (ocean) color = glm::vec3(0.0f, 0.0f, 1.0f);
+			if (hn->ocean) color = glm::vec3(0.0f, 0.0f, 1.0f);
 
+			// Here, we find the vertices which will make up the corners
+			// of the hex.
 			std::vector<glm::vec3> verts;
-
 			for (int j = 0; j < hn->neighbors.size(); j++)
 			{
 				HexNode* neighbor1 = &hexNodes[hn->neighbors[j]];
@@ -301,6 +353,7 @@ namespace Mandalin
 				verts.push_back((a + b + c) / 3.0f);
 			}
 
+			// Now we go about actually putting the hex together.
 			// First, we add the top of the hex.
 			for (int j = 0; j < verts.size(); j++)
 			{
@@ -378,6 +431,8 @@ namespace Mandalin
 				{
 					c->index,
 					j - i,
+					hexNodes[i].fault,
+					hexNodes[i].ocean,
 					{}
 				};
 
@@ -399,21 +454,7 @@ namespace Mandalin
 			}
 
 			c->center /= allotedHexes;
-			c->center = polyhedron->radius * glm::normalize(c->center);
-
-			/*glm::vec3 color = glm::vec3((rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f);
-			for (int j = t; j < t + c->triCount; j++)
-			{
-				triangles[j].a.r = color.r;
-				triangles[j].b.r = color.r;
-				triangles[j].c.r = color.r;
-				triangles[j].a.g = color.g;
-				triangles[j].b.g = color.g;
-				triangles[j].c.g = color.g;
-				triangles[j].a.b = color.b;
-				triangles[j].b.b = color.b;
-				triangles[j].c.b = color.b;
-			}*/
+			c->center = radius * glm::normalize(c->center);
 
 			GLuint IBO;
 
@@ -469,6 +510,8 @@ namespace Mandalin
 
 		for (int i = 0; i < worldSize; i++) polyhedron->Subdivide();
 
-		Hexify(polyhedron);
+		std::vector<HexNode> hexNodes = Hexify(polyhedron);
+		hexNodes = SortNeighbors(hexNodes);
+		GenerateGeometry(hexNodes);
 	}
 }
