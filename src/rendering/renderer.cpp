@@ -27,6 +27,8 @@ namespace Mandalin
 		shaders[0].Use();
 		shaders[0].SetMatrix("MVP", camera->GetViewProjection());
 
+		Ocean* ocean = planet->GetOcean();
+
 		glm::vec3 camPos = -camera->GetPosition();
 		glm::vec3 planetPos = planet->GetPosition();
 
@@ -35,19 +37,54 @@ namespace Mandalin
 
 		glm::vec3 ab = planetPos - camPos;
 
-		for (int i = 0; i < planet->ChunkCount(); i++)
+		if (planet->GetWorldSize() < 4)
 		{
-			Chunk* c = planet->GetChunk(i);
-
-			glm::vec3 bc = c->center - planetPos;
-
-			float dotABC = glm::dot(ab, bc);
-			float magABC = glm::length(ab) * glm::length(bc);
-
-			float theta = acosf(dotABC / magABC);
-
-			if (theta < highestTheta)
+			for (int i = 0; i < planet->ChunkCount(); i++)
 			{
+				Chunk* c = planet->GetChunk(i);
+				glBindVertexArray(c->vao);
+				glBindBuffer(GL_ARRAY_BUFFER, c->vbo);
+				glDrawElements(GL_TRIANGLES, c->triCount * 3, GL_UNSIGNED_INT, nullptr);
+			}
+
+			/*shaders[1].Use();
+			shaders[1].SetMatrix("MVP", camera->GetViewProjection());*/
+
+			for (int i = 0; i < ocean->ChunkCount(); i++)
+			{
+				OceanChunk* c = ocean->GetChunk(i);
+				glBindVertexArray(c->vao);
+				glBindBuffer(GL_ARRAY_BUFFER, c->vbo);
+				glDrawElements(GL_TRIANGLES, c->triCount * 3, GL_UNSIGNED_INT, nullptr);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < planet->ChunkCount(); i++)
+			{
+				Chunk* c = planet->GetChunk(i);
+
+				glm::vec3 bc = c->center - planetPos;
+
+				float dotABC = glm::dot(ab, bc);
+				float magABC = glm::length(ab) * glm::length(bc);
+
+				float theta = acosf(dotABC / magABC);
+
+				if (theta < highestTheta || c->hexCount < 15)
+				{
+					glBindVertexArray(c->vao);
+					glBindBuffer(GL_ARRAY_BUFFER, c->vbo);
+					glDrawElements(GL_TRIANGLES, c->triCount * 3, GL_UNSIGNED_INT, nullptr);
+				}
+			}
+
+			/*shaders[1].Use();
+			shaders[1].SetMatrix("MVP", camera->GetViewProjection());*/
+
+			for (int i = 0; i < ocean->ChunkCount(); i++)
+			{
+				OceanChunk* c = ocean->GetChunk(i);
 				glBindVertexArray(c->vao);
 				glBindBuffer(GL_ARRAY_BUFFER, c->vbo);
 				glDrawElements(GL_TRIANGLES, c->triCount * 3, GL_UNSIGNED_INT, nullptr);

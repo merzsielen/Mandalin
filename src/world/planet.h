@@ -6,8 +6,7 @@
 
 #include <vector>
 
-#include "chunk.h"
-#include "../util/geometry.h"
+#include "ocean.h"
 #include "../util/checkerror.h"
 
 namespace Mandalin
@@ -42,6 +41,11 @@ namespace Mandalin
 		std::vector<Chunk>		chunks;
 
 		/*-----------------------------------------------*/
+		/* Ocean */
+		/*-----------------------------------------------*/
+		Ocean*					ocean;
+
+		/*-----------------------------------------------*/
 		/* World Generation Options */
 		/*-----------------------------------------------*/
 		unsigned int			worldSize;
@@ -60,7 +64,11 @@ namespace Mandalin
 		/*-----------------------------------------------*/
 		unsigned int			ChunkCount() { return chunks.size(); }
 		Chunk*					GetChunk(unsigned int i) { return &chunks[i]; }
-		void					SortChunks();
+
+		/*-----------------------------------------------*/
+		/* Ocean */
+		/*-----------------------------------------------*/
+		Ocean*					GetOcean() { return ocean; }
 
 		/*-----------------------------------------------*/
 		/* World Generation */
@@ -82,6 +90,7 @@ namespace Mandalin
 		/* Constructor         */
 		/*---------------------*/
 		Planet(unsigned int worldSize);
+		~Planet();
 	};
 }
 

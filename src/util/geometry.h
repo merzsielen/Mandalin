@@ -67,6 +67,7 @@ namespace Mandalin
 		bool						fault = false;
 		bool						ocean = false;
 		int							continent = -1;
+		unsigned int				continentIndex = 0;
 	};
 
 	bool CompareDistances(HexNode a, HexNode b);

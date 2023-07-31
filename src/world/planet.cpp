@@ -287,6 +287,8 @@ namespace Mandalin
 			Sadly, this means looping over the nodes a few too
 			many times.
 			First, we have to set all the oceans.
+
+			We can also take this moment to set all the faults.
 		*/
 		for (int i = 0; i < hexNodes.size(); i++)
 		{
@@ -319,6 +321,17 @@ namespace Mandalin
 			}
 		}
 
+		for (int i = 0; i < hexNodes.size(); i++)
+		{
+			HexNode* hn = &hexNodes[i];
+
+			for (int j = 0; j < hn->neighbors.size(); j++)
+			{
+				HexNode* neighbor = &hexNodes[hn->neighbors[j]];
+				if (hn->ocean != neighbor->ocean) hn->fault = true;
+			}
+		}
+
 		/*
 			And *now* we go through and convert to triangles.
 		*/
@@ -327,12 +340,12 @@ namespace Mandalin
 			HexNode* hn = &hexNodes[i];
 
 			float rise = 0.5f;
-			if (hn->ocean) rise = -1.0f;
+			if (hn->ocean) rise = radius - (radius * ocean->GetOffset()) - 5.0f;
 			glm::vec3 offset = rise * glm::normalize(hn->center);
 
 			// glm::vec3 color = glm::vec3((rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f, (rand() % 100 + 1) / 100.0f);
-			glm::vec3 color = glm::vec3(0.05f, 0.73f, 0.28f);
-			if (hn->ocean) color = glm::vec3(0.0f, 0.0f, 1.0f);
+			glm::vec4 color = glm::vec4(0.05f, 0.73f, 0.28f, 1.0f);
+			if (hn->ocean) color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
 			// Here, we find the vertices which will make up the corners
 			// of the hex.
@@ -341,11 +354,11 @@ namespace Mandalin
 			{
 				HexNode* neighbor1 = &hexNodes[hn->neighbors[j]];
 				HexNode* neighbor2 = &hexNodes[hn->neighbors[(j + 1) % hn->neighbors.size()]];
-				bool sameCont1 = (hn->continent == neighbor1->continent);
-				bool sameCont2 = (hn->continent == neighbor2->continent);
+				bool sameHeight1 = (hn->ocean == neighbor1->ocean);
+				bool sameHeight2 = (hn->ocean == neighbor2->ocean);
 
-				glm::vec3 offset1 = sameCont1 ? rise * glm::normalize(neighbor1->center) : offset;
-				glm::vec3 offset2 = sameCont2 ? rise * glm::normalize(neighbor2->center) : offset;
+				glm::vec3 offset1 = sameHeight1 ? rise * glm::normalize(neighbor1->center) : offset;
+				glm::vec3 offset2 = sameHeight2 ? rise * glm::normalize(neighbor2->center) : offset;
 
 				glm::vec3 a = hn->center + offset;
 				glm::vec3 b = neighbor1->center + offset1;
@@ -363,42 +376,46 @@ namespace Mandalin
 
 				Triangle t =
 				{
-					{ a.x, a.y, a.z, color.r, color.g, color.b, 1.0f },
-					{ b.x, b.y, b.z, color.r, color.g, color.b, 1.0f },
-					{ c.x, c.y, c.z, color.r, color.g, color.b, 1.0f }
+					{ a.x, a.y, a.z, color.r, color.g, color.b, color.a },
+					{ b.x, b.y, b.z, color.r, color.g, color.b, color.a },
+					{ c.x, c.y, c.z, color.r, color.g, color.b, color.a }
 				};
 
 				triangles.push_back(t);
 			}
 
 			// And now we add the sides.
-			color /= 2.0f;
-
-			glm::vec3 onset = -((radius / 4.0f) * glm::normalize(hn->center));
-
-			for (int j = 0; j < verts.size(); j++)
+			// We only do this if necessary.
+			if (hn->fault)
 			{
-				glm::vec3 a = verts[j];
-				glm::vec3 b = a + onset;
-				glm::vec3 c = verts[(static_cast<unsigned long long>(j) + 1) % verts.size()];
-				glm::vec3 d = c + onset;
+				color = glm::vec4(color.r / 2.0f, color.g / 2.0f, color.b / 2.0f, color.a);
 
-				Triangle adb =
+				glm::vec3 onset = -((radius / 4.0f) * glm::normalize(hn->center));
+
+				for (int j = 0; j < verts.size(); j++)
 				{
-					{ a.x, a.y, a.z, color.r, color.g, color.b, 1.0f },
-					{ d.x, d.y, d.z, color.r, color.g, color.b, 1.0f },
-					{ b.x, b.y, b.z, color.r, color.g, color.b, 1.0f }
-				};
+					glm::vec3 a = verts[j];
+					glm::vec3 b = a + onset;
+					glm::vec3 c = verts[(static_cast<unsigned long long>(j) + 1) % verts.size()];
+					glm::vec3 d = c + onset;
 
-				Triangle acd =
-				{
-					{ a.x, a.y, a.z, color.r, color.g, color.b, 1.0f },
-					{ c.x, c.y, c.z, color.r, color.g, color.b, 1.0f },
-					{ d.x, d.y, d.z, color.r, color.g, color.b, 1.0f }
-				};
+					Triangle adb =
+					{
+						{ a.x, a.y, a.z, color.r, color.g, color.b, color.a },
+						{ d.x, d.y, d.z, color.r, color.g, color.b, color.a },
+						{ b.x, b.y, b.z, color.r, color.g, color.b, color.a }
+					};
 
-				triangles.push_back(adb);
-				triangles.push_back(acd);
+					Triangle acd =
+					{
+						{ a.x, a.y, a.z, color.r, color.g, color.b, color.a },
+						{ c.x, c.y, c.z, color.r, color.g, color.b, color.a },
+						{ d.x, d.y, d.z, color.r, color.g, color.b, color.a }
+					};
+
+					triangles.push_back(adb);
+					triangles.push_back(acd);
+				}
 			}
 		}
 
@@ -447,7 +464,9 @@ namespace Mandalin
 					hex.neighbors.push_back(p);
 				}
 
-				if (hexNodes[j].neighbors.size() == 5) c->triCount -= 3;
+				if (hexNodes[j].neighbors.size() == 5) c->triCount -= 1;
+				else if (hexNodes[j].neighbors.size() == 5 && !hexNodes[j].fault) c->triCount -= 3;
+				else if (!hexNodes[j].fault) c->triCount -= 12;
 
 				c->center += hexNodes[j].center;
 				c->hexes[j - i] = hex;
@@ -510,8 +529,15 @@ namespace Mandalin
 
 		for (int i = 0; i < worldSize; i++) polyhedron->Subdivide();
 
+		ocean = new Ocean(polyhedron);
 		std::vector<HexNode> hexNodes = Hexify(polyhedron);
 		hexNodes = SortNeighbors(hexNodes);
 		GenerateGeometry(hexNodes);
+
+	}
+
+	Planet::~Planet()
+	{
+		delete ocean;
 	}
 }

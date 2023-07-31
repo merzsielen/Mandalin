@@ -46,17 +46,11 @@ namespace Mandalin
 		for (int i = 0; i < unordered.size(); i += stride)
 		{
 			selectedStarts.push_back(i);
-			sorted.push_back({ unordered[i] });
 			unordered[i].filled = true;
+			unordered[i].continent = sorted.size();
+			unordered[i].continentIndex = 0;
+			sorted.push_back({ unordered[i] });
 		}
-
-		/*for (int i = 0; i < count; i++)
-		{
-			int r = GetVoronoiStart(unordered.size(), selectedStarts);
-			selectedStarts.push_back(r);
-			sorted.push_back({ unordered[r] });
-			unordered[r].filled = true;
-		}*/
 
 		int filled = sorted.size();
 
@@ -79,12 +73,9 @@ namespace Mandalin
 						{
 							hn->filled = true;
 							hn->continent = i;
+							hn->continentIndex = sorted[i].size() + newNodes.size();
 							newNodes.push_back(*hn);
 							filled++;
-						}
-						else
-						{
-							hn->fault = true;
 						}
 					}
 				}

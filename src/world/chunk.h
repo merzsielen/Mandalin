@@ -66,7 +66,6 @@ namespace Mandalin
 
 		unsigned int	index;
 		glm::vec3		center;
-		float			distance = 0.0f;
 
 		unsigned int	triCount;
 

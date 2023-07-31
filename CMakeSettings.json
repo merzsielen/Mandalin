@@ -21,7 +21,33 @@
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "msvc_x64_x64" ],
-      "variables": []
+      "variables": [
+        {
+          "name": "CMAKE_BUILD_TYPE",
+          "value": "RelWithDebInfo",
+          "type": "STRING"
+        },
+        {
+          "name": "FT_DISABLE_HARFBUZZ",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "FT_DISABLE_BZIP2",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "FT_DISABLE_BROTLI",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "FT_DISABLE_PNG",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
     }
   ]
 }
