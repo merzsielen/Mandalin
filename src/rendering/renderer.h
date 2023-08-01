@@ -40,6 +40,7 @@ namespace Mandalin
 		/* Shaders */
 		/*-----------------------------------------------*/
 		std::vector<Shader>		shaders;
+		float					lastTime = 0.0f;
 
 	public:
 		/*-----------------------------------------------*/

@@ -295,6 +295,11 @@ namespace Mandalin
 	/*-----------------------------------------------*/
 	/* Vector Functions */
 	/*-----------------------------------------------*/
+	float Lerp(float a, float b, float step)
+	{
+		return (a * (1.0 - step)) + (b * step);
+	}
+
 	glm::vec3 Lerp(glm::vec3 a, glm::vec3 b, float step)
 	{
 		return (a * (1.0f - step) + (b * step));

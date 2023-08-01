@@ -37,6 +37,9 @@ namespace Mandalin
 
 		glm::vec3 ab = planetPos - camPos;
 
+		float time1 = lastTime;
+		float time2 = Lerp(lastTime, (rand() % 1000), 0.0001f);
+
 		if (planet->GetWorldSize() < 4)
 		{
 			for (int i = 0; i < planet->ChunkCount(); i++)
@@ -47,8 +50,10 @@ namespace Mandalin
 				glDrawElements(GL_TRIANGLES, c->triCount * 3, GL_UNSIGNED_INT, nullptr);
 			}
 
-			/*shaders[1].Use();
-			shaders[1].SetMatrix("MVP", camera->GetViewProjection());*/
+			shaders[1].Use();
+			shaders[1].SetMatrix("MVP", camera->GetViewProjection());
+			shaders[1].SetFloat("time1", time1);
+			shaders[1].SetFloat("time2", time2);
 
 			for (int i = 0; i < ocean->ChunkCount(); i++)
 			{
@@ -79,8 +84,10 @@ namespace Mandalin
 				}
 			}
 
-			/*shaders[1].Use();
-			shaders[1].SetMatrix("MVP", camera->GetViewProjection());*/
+			shaders[1].Use();
+			shaders[1].SetMatrix("MVP", camera->GetViewProjection());
+			shaders[1].SetFloat("time1", time1);
+			shaders[1].SetFloat("time2", time2);
 
 			for (int i = 0; i < ocean->ChunkCount(); i++)
 			{
@@ -90,6 +97,8 @@ namespace Mandalin
 				glDrawElements(GL_TRIANGLES, c->triCount * 3, GL_UNSIGNED_INT, nullptr);
 			}
 		}
+
+		lastTime = time2;
 
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -105,6 +114,9 @@ namespace Mandalin
 
 		Shader shader = { "assets/shaders/base.vert", "assets/shaders/base.frag" };
 		shaders.push_back(shader);
+
+		Shader waterShader = { "assets/shaders/water.vert", "assets/shaders/water.frag" };
+		shaders.push_back(waterShader);
 
 		GLuint IBO;
 
