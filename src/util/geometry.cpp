@@ -298,6 +298,27 @@ namespace Mandalin
 	}
 
 	/*-----------------------------------------------*/
+	/* Basic Collisions */
+	/*-----------------------------------------------*/
+	bool PointInCube(glm::vec3 cMin, glm::vec3 cMax, glm::vec3 p)
+	{
+		bool overlapX = (p.x > cMin.x && p.x < cMax.x);
+		bool overlapY = (p.y > cMin.y && p.y < cMax.y);
+		bool overlapZ = (p.z > cMin.z && p.z < cMax.z);
+
+		return (overlapX && overlapY && overlapZ);
+	}
+
+	bool CubesOverlap(glm::vec3 aMin, glm::vec3 aMax, glm::vec3 bMin, glm::vec3 bMax)
+	{
+		bool overlapX = (aMax.x >= bMin.x && bMax.x >= aMin.x);
+		bool overlapY = (aMax.y >= bMin.y && bMax.y >= aMin.y);
+		bool overlapZ = (aMax.z >= bMin.z && bMax.z >= aMin.z);
+
+		return (overlapX && overlapY && overlapZ);
+	}
+
+	/*-----------------------------------------------*/
 	/* Vector Functions */
 	/*-----------------------------------------------*/
 	float Lerp(float a, float b, float step)

@@ -76,6 +76,12 @@ namespace Mandalin
 	std::vector<HexNode> VoronoiSort(std::vector<HexNode> unordered, int desiredCount);
 
 	/*-----------------------------------------------*/
+	/* Basic Collisions */
+	/*-----------------------------------------------*/
+	bool PointInCube(glm::vec3 cMin, glm::vec3 cMax, glm::vec3 p);
+	bool CubesOverlap(glm::vec3 aMin, glm::vec3 aMax, glm::vec3 bMin, glm::vec3 bMax);
+
+	/*-----------------------------------------------*/
 	/* Rays */
 	/*-----------------------------------------------*/
 	struct Ray

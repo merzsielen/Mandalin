@@ -442,33 +442,49 @@ namespace Mandalin
 			c->triCount = allotedHexes * Chunk::TRISPERHEX;
 
 			c->center = glm::vec3(0.0f, 0.0f, 0.0f);
+			c->upperBounds = glm::vec3(-INFINITY);
+			c->lowerBounds = glm::vec3(INFINITY);
 			for (int j = i; j < i + allotedHexes; j++)
 			{
+				HexNode* hn = &hexNodes[j];
+
 				Hex hex =
 				{
 					c->index,
 					j - i,
-					hexNodes[i].fault,
-					hexNodes[i].ocean,
+					hn->fault,
+					hn->ocean,
 					{}
 				};
 
-				for (int k = 0; k < hexNodes[j].neighbors.size(); k++)
+				for (int k = 0; k < hn->neighbors.size(); k++)
 				{
 					std::pair<unsigned int, unsigned int> p =
 					{
-						hexNodes[j].neighbors[k] / Chunk::MAXHEXES,
-						hexNodes[j].neighbors[k] % Chunk::MAXHEXES
+						hn->neighbors[k] / Chunk::MAXHEXES,
+						hn->neighbors[k] % Chunk::MAXHEXES
 					};
 
 					hex.neighbors.push_back(p);
 				}
 
-				if (hexNodes[j].neighbors.size() == 5) c->triCount -= 1;
-				else if (hexNodes[j].neighbors.size() == 5 && !hexNodes[j].fault) c->triCount -= 3;
-				else if (!hexNodes[j].fault) c->triCount -= 12;
+				// Cull Unnecessary Triangles
+				if (hn->neighbors.size() == 5) c->triCount -= 1;
+				else if (hn->neighbors.size() == 5 && !hn->fault) c->triCount -= 3;
+				else if (!hn->fault) c->triCount -= 12;
 
+				// Calculate Lower and Upper Chunk Bounds
+				if (hn->center.x > c->upperBounds.x) c->upperBounds.x = hn->center.x;
+				if (hn->center.y > c->upperBounds.y) c->upperBounds.y = hn->center.y;
+				if (hn->center.z > c->upperBounds.z) c->upperBounds.z = hn->center.z;
+				if (hn->center.x < c->lowerBounds.x) c->lowerBounds.x = hn->center.x;
+				if (hn->center.y < c->lowerBounds.y) c->lowerBounds.y = hn->center.y;
+				if (hn->center.z < c->lowerBounds.z) c->lowerBounds.z = hn->center.z;
+
+				// Find Center
 				c->center += hexNodes[j].center;
+
+				// Done
 				c->hexes[j - i] = hex;
 			}
 

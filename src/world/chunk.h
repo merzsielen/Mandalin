@@ -66,6 +66,8 @@ namespace Mandalin
 
 		unsigned int	index;
 		glm::vec3		center;
+		glm::vec3		upperBounds;
+		glm::vec3		lowerBounds;
 
 		unsigned int	triCount;
 

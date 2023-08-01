@@ -40,62 +40,36 @@ namespace Mandalin
 		float time1 = lastTime;
 		float time2 = Lerp(lastTime, (rand() % 1000), 0.0001f);
 
-		if (planet->GetWorldSize() < 4)
+		for (int i = 0; i < planet->ChunkCount(); i++)
 		{
-			for (int i = 0; i < planet->ChunkCount(); i++)
-			{
-				Chunk* c = planet->GetChunk(i);
-				glBindVertexArray(c->vao);
-				glBindBuffer(GL_ARRAY_BUFFER, c->vbo);
-				glDrawElements(GL_TRIANGLES, c->triCount * 3, GL_UNSIGNED_INT, nullptr);
-			}
+			Chunk* c = planet->GetChunk(i);
 
-			shaders[1].Use();
-			shaders[1].SetMatrix("MVP", camera->GetViewProjection());
-			shaders[1].SetFloat("time1", time1);
-			shaders[1].SetFloat("time2", time2);
+			glm::vec3 bc = c->center - planetPos;
 
-			for (int i = 0; i < ocean->ChunkCount(); i++)
+			float dotABC = glm::dot(ab, bc);
+			float magABC = glm::length(ab) * glm::length(bc);
+
+			float theta = acosf(dotABC / magABC);
+
+			if (theta < highestTheta)
 			{
-				OceanChunk* c = ocean->GetChunk(i);
 				glBindVertexArray(c->vao);
 				glBindBuffer(GL_ARRAY_BUFFER, c->vbo);
 				glDrawElements(GL_TRIANGLES, c->triCount * 3, GL_UNSIGNED_INT, nullptr);
 			}
 		}
-		else
+
+		shaders[1].Use();
+		shaders[1].SetMatrix("MVP", camera->GetViewProjection());
+		shaders[1].SetFloat("time1", time1);
+		shaders[1].SetFloat("time2", time2);
+
+		for (int i = 0; i < ocean->ChunkCount(); i++)
 		{
-			for (int i = 0; i < planet->ChunkCount(); i++)
-			{
-				Chunk* c = planet->GetChunk(i);
-
-				glm::vec3 bc = c->center - planetPos;
-
-				float dotABC = glm::dot(ab, bc);
-				float magABC = glm::length(ab) * glm::length(bc);
-
-				float theta = acosf(dotABC / magABC);
-
-				if (theta < highestTheta || c->hexCount < 15)
-				{
-					glBindVertexArray(c->vao);
-					glBindBuffer(GL_ARRAY_BUFFER, c->vbo);
-					glDrawElements(GL_TRIANGLES, c->triCount * 3, GL_UNSIGNED_INT, nullptr);
-				}
-			}
-
-			shaders[1].Use();
-			shaders[1].SetMatrix("MVP", camera->GetViewProjection());
-			shaders[1].SetFloat("time1", time1);
-			shaders[1].SetFloat("time2", time2);
-
-			for (int i = 0; i < ocean->ChunkCount(); i++)
-			{
-				OceanChunk* c = ocean->GetChunk(i);
-				glBindVertexArray(c->vao);
-				glBindBuffer(GL_ARRAY_BUFFER, c->vbo);
-				glDrawElements(GL_TRIANGLES, c->triCount * 3, GL_UNSIGNED_INT, nullptr);
-			}
+			OceanChunk* c = ocean->GetChunk(i);
+			glBindVertexArray(c->vao);
+			glBindBuffer(GL_ARRAY_BUFFER, c->vbo);
+			glDrawElements(GL_TRIANGLES, c->triCount * 3, GL_UNSIGNED_INT, nullptr);
 		}
 
 		lastTime = time2;
