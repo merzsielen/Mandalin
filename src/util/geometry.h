@@ -11,6 +11,8 @@
 #include <vector>
 #include <glm/glm.hpp>
 
+#include "../world/hex.h"
+
 namespace Mandalin
 {
 	/*-----------------------------------------------*/
@@ -63,17 +65,26 @@ namespace Mandalin
 		glm::vec3					center;
 		std::vector<unsigned int>	neighbors;
 
-		bool						filled = false;
+		Biome						biome = Biome::flatlands;
+		unsigned int				biomeVariation = 0;
+
 		bool						fault = false;
+		bool						faultNeighbor = false;
 		bool						ocean = false;
+		bool						oceanNeighbor = false;
+
+		int							region = -1;
 		int							continent = -1;
-		unsigned int				continentIndex = 0;
+		int							tectonicPlate = -1;
+		float						regionDistance = 0.0f;
+		
+		unsigned int				tris = 0;
 	};
 
 	bool CompareDistances(HexNode a, HexNode b);
 
 	int GetVoronoiStart(int size, std::vector<int> selectedStarts);
-	std::vector<HexNode> VoronoiSort(std::vector<HexNode> unordered, int desiredCount);
+	std::vector<HexNode> VoronoiSort(std::vector<HexNode> unordered);
 
 	/*-----------------------------------------------*/
 	/* Basic Collisions */

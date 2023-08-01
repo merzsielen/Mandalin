@@ -5,7 +5,6 @@
 
 #include "shader.h"
 #include "camera.h"
-#include "../world/planet.h"
 
 /*
 	renderer.h
@@ -28,8 +27,8 @@ namespace Mandalin
 		/*-----------------------------------------------*/
 		/* General */
 		/*-----------------------------------------------*/
-		GLuint					VAO;
-		GLuint					VBO;
+		/*GLuint					VAO;
+		GLuint					VBO;*/
 
 		/*-----------------------------------------------*/
 		/* Camera */
@@ -46,13 +45,13 @@ namespace Mandalin
 		/*-----------------------------------------------*/
 		/* General Functions */
 		/*-----------------------------------------------*/
-		GLuint					GetVAO() { return VAO; }
+		// GLuint					GetVAO() { return VAO; }
 
 		/*-----------------------------------------------*/
 		/* Render */
 		/*-----------------------------------------------*/
 		void					Render(Planet* planet);
-		void					Render(std::vector<Triangle> in);
+		// void					Render(std::vector<Triangle> in);
 
 		/*-----------------------------------------------*/
 		/* Constructor & Deconstructor */

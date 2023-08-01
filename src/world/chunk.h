@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 
+#include "../util/settings.h"
 #include "hex.h"
 
 namespace Mandalin
@@ -60,14 +61,8 @@ namespace Mandalin
 	*/
 	struct Chunk
 	{
-		static constexpr unsigned int MAXHEXES = 200;
-		static constexpr unsigned int TRISPERHEX = 18;
-		static constexpr unsigned int MAXTRIS = (MAXHEXES * TRISPERHEX);
-
 		unsigned int	index;
 		glm::vec3		center;
-		glm::vec3		upperBounds;
-		glm::vec3		lowerBounds;
 
 		unsigned int	triCount;
 
@@ -75,7 +70,7 @@ namespace Mandalin
 		GLuint			vbo;
 
 		unsigned int	hexCount;
-		Hex				hexes[MAXHEXES];
+		Hex				hexes[Settings::ChunkMaxHexes];
 	};
 
 }

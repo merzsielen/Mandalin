@@ -71,6 +71,11 @@ namespace Mandalin
 		Ocean*					GetOcean() { return ocean; }
 
 		/*-----------------------------------------------*/
+		/* Buffers */
+		/*-----------------------------------------------*/
+		void					Refocus(Focus focus);
+
+		/*-----------------------------------------------*/
 		/* World Generation */
 		/*-----------------------------------------------*/
 		/*
@@ -82,8 +87,11 @@ namespace Mandalin
 			(Next follows tectonic plates, temperature,
 			wind, currents, biomes, etc.)
 		*/
+		float					GetRise(Biome biome);
+		Biome					GetBiome(HexNode* hn);
 		std::vector<HexNode>	Hexify(Polyhedron* polyhedron);
 		std::vector<HexNode>	SortNeighbors(std::vector<HexNode> hexNodes);
+		std::vector<HexNode>	GenerateBiomes(std::vector<HexNode> hexNodes);
 		void					GenerateGeometry(std::vector<HexNode> hexNodes);
 
 		/*---------------------*/

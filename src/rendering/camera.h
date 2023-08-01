@@ -15,6 +15,7 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
+#include "../world/planet.h"
 #include "../util/geometry.h"
 
 namespace Mandalin
@@ -38,21 +39,16 @@ namespace Mandalin
 		int					windowWidth;
 		int					windowHeight;
 
-		float				fov = 180.0f;
-		float				nearClip = 0.01f;
-		float				farClip = 150.0f;
-
-		/*-----------------------------------------------*/
-		/* Max Chunk Render Distance */
-		/*-----------------------------------------------*/
-		float				maxChunkDistance = 100.0f;
+		float				fov;
+		float				nearClip;
+		float				farClip;
 
 		/*-----------------------------------------------*/
 		/* Speed & Distance */
 		/*-----------------------------------------------*/
-		float				movementSpeed = 100.0f;
-		float				minCameraDistance = 100.0f;
-		float				maxCameraDistance = 200.0f;
+		float				movementSpeed;
+		float				minCameraDistance;
+		float				maxCameraDistance;
 
 		/*-----------------------------------------------*/
 		/* Projection & View */
@@ -65,7 +61,15 @@ namespace Mandalin
 		/*-----------------------------------------------*/
 		/* Background Color */
 		/*-----------------------------------------------*/
-		glm::vec4			backgroundColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		glm::vec4			backgroundColor;
+
+		/*-----------------------------------------------*/
+		/* Input Handling */
+		/*-----------------------------------------------*/
+		Focus				focus = Focus::biome;
+		float				accruedTime = 0.0f;
+		float				timeThreshold = 1.0f;
+		void				HandleInput(float deltaTime, Planet* planet);
 
 	public:
 		/*-----------------------------------------------*/
@@ -94,11 +98,6 @@ namespace Mandalin
 		void				SetWindowHeight(int height) { windowHeight = height; }
 
 		/*-----------------------------------------------*/
-		/* Max Chunk Render Distance Functions */
-		/*-----------------------------------------------*/
-		float				GetMaxChunkRenderDistance() { return maxChunkDistance; }
-
-		/*-----------------------------------------------*/
 		/* Projection & View Functions */
 		/*-----------------------------------------------*/
 		Lens				GetLens() { return lens; }
@@ -118,14 +117,9 @@ namespace Mandalin
 		void				SetBackgroundColor(glm::vec4 color) { backgroundColor = color; }
 
 		/*-----------------------------------------------*/
-		/* Temporary Input Handling */
-		/*-----------------------------------------------*/
-		void				HandleInput(float deltaTime);
-
-		/*-----------------------------------------------*/
 		/* Update (Main Loop) */
 		/*-----------------------------------------------*/
-		void				Update(float deltaTime);
+		void				Update(float deltaTime, Planet* planet);
 
 		/*-----------------------------------------------*/
 		/* Constructor & Deconstructor */

@@ -6,6 +6,20 @@
 namespace Mandalin
 {
 	/*-------------------------------------------------*/
+	/* Focuses                                         */
+	/*-------------------------------------------------*/
+	enum class Focus { biome, region, continent, tectonicPlate };
+
+	/*-------------------------------------------------*/
+	/* Biomes                                          */
+	/*-------------------------------------------------*/
+	/*
+		There are going to be a number of different
+		biomes, as you might imagine.
+	*/
+	enum class Biome { ocean, mountain, highlands, flatlands };
+
+	/*-------------------------------------------------*/
 	/* Hex                                             */
 	/*-------------------------------------------------*/
 	/*
@@ -26,9 +40,17 @@ namespace Mandalin
 		unsigned int	chunk;
 		unsigned int	index;
 
-		// General Location Information
-		bool			fault;
-		bool			ocean;
+		// Biomes
+		Biome			biome;
+		unsigned int	biomeVariation; // 0 - 4
+
+		// Region, Continent, & Plate
+		unsigned int	region;
+		unsigned int	continent;
+		unsigned int	tectonicPlate;
+
+		// Associated Tris
+		unsigned int	tris;
 		
 		// The chunk indices of each neighbor followed by
 		// their indices within that chunk.

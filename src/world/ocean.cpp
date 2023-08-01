@@ -11,7 +11,7 @@ namespace Mandalin
 	{
 		std::vector<Triangle> triangles;
 
-		float radius = polyhedron->radius * offset;
+		float radius = polyhedron->radius * Settings::OceanOffset;
 
 		for (int i = 0; i < polyhedron->faces.size(); i++)
 		{
@@ -20,6 +20,8 @@ namespace Mandalin
 			glm::vec3 a = radius * glm::normalize(polyhedron->vertices[tf->a].vertex);
 			glm::vec3 b = radius * glm::normalize(polyhedron->vertices[tf->b].vertex);
 			glm::vec3 c = radius * glm::normalize(polyhedron->vertices[tf->c].vertex);
+
+			glm::vec4 color = Settings::OceanColor;
 
 			Triangle tri =
 			{
@@ -33,9 +35,9 @@ namespace Mandalin
 
 		std::cout << "Generating an ocean with " << triangles.size() << " triangles." << std::endl;
 
-		for (int i = 0; i < triangles.size(); i += OceanChunk::MAXTRIS)
+		for (int i = 0; i < triangles.size(); i += Settings::OceanChunkMaxTris)
 		{
-			unsigned int allotedTris = std::min(OceanChunk::MAXTRIS, (unsigned int)triangles.size() - i);
+			unsigned int allotedTris = std::min(Settings::OceanChunkMaxTris, (unsigned int)triangles.size() - i);
 
 			chunks.push_back({});
 			OceanChunk* c = &chunks[chunks.size() - 1];
@@ -78,8 +80,8 @@ namespace Mandalin
 			glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, r));
 			glEnableVertexAttribArray(1);
 
-			unsigned int indices[OceanChunk::MAXTRIS * 3];
-			for (int i = 0; i < OceanChunk::MAXTRIS; i++)
+			unsigned int indices[Settings::OceanChunkMaxTris * 3];
+			for (int i = 0; i < Settings::OceanChunkMaxTris; i++)
 			{
 				const int offset = 3 * i;
 

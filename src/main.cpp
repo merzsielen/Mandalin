@@ -78,9 +78,10 @@ void main()
 		Now we're going to fire up rendering:
 		camera, renderer, etc.
 	*/
+	Mandalin::Settings::Setup();
 	Mandalin::Camera* camera = new Mandalin::Camera({ 0, 1, 113.144f }, { 1, 0, 0, 0 }, 1.0f, window);
 	Mandalin::Renderer* renderer = new Mandalin::Renderer(camera);
-	Mandalin::Planet* planet = new Mandalin::Planet(5);
+	Mandalin::Planet* planet = new Mandalin::Planet(Mandalin::Settings::WorldSize);
 
 	/*
 		And now we can run the loop.
@@ -111,7 +112,7 @@ void main()
 			std::cout << "Camera Rotation: " << camQ.w << " / " << camQ.x << " / " << camQ.y << " / " << camQ.z << std::endl;*/
 		}
 
-		camera->Update(deltaTime);
+		camera->Update(deltaTime, planet);
 
 		renderer->Render(planet);
 

@@ -17,6 +17,8 @@ set(BASE_SRCS
     "src/util/checkerror.h"
     "src/util/geometry.cpp"
     "src/util/geometry.h"
+    "src/util/settings.cpp"
+    "src/util/settings.h"
     "src/world/chunk.h"
     "src/world/hex.h"
     "src/world/ocean.h"

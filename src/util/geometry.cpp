@@ -7,16 +7,13 @@
 #include <unordered_map>
 #include <glm/gtx/hash.hpp>
 
+#include "settings.h"
+
 namespace Mandalin
 {
 	bool CompareDistances(HexNode a, HexNode b)
 	{
-		glm::vec3 up = glm::vec3(0.0f, 10000.0f, 0.0f);
-		glm::vec3 right = glm::vec3(10000.0f, 0.0f, 0.0f);
-		glm::vec3 forward = glm::vec3(0.0f, 0.0f, 10000.0f);
-
-		return (glm::distance2(up, a.center) + glm::distance2(right, a.center) + glm::distance2(forward, a.center)) >
-			(glm::distance2(up, b.center) + glm::distance2(right, b.center) + glm::distance2(forward, b.center));
+		return (a.regionDistance < b.regionDistance);
 	}
 
 	int GetVoronoiStart(int size, std::vector<int> selectedStarts)
@@ -34,7 +31,202 @@ namespace Mandalin
 		return r;
 	}
 
-	std::vector<HexNode> VoronoiSort(std::vector<HexNode> unordered, int desiredCount)
+	std::vector<HexNode> VoronoiSort(std::vector<HexNode> unordered)
+	{
+		srand(time(NULL));
+
+		std::vector<std::vector<HexNode>> regions;
+		std::vector<std::vector<unsigned int>> continents;
+		std::vector<std::vector<unsigned int>> tectonicPlates;
+
+		std::vector<int> selectedStarts;
+
+		/*
+			First, we find all our regional centers.
+		*/
+		for (int i = 0; i < Settings::RegionCount; i++)
+		{
+			int r = GetVoronoiStart(unordered.size(), selectedStarts);
+			
+			unordered[r].region = i;
+
+			regions.push_back({ unordered[r] });
+			selectedStarts.push_back(r);
+
+			glm::vec4 color = glm::vec4((rand() % 100) / 100.0f, (rand() % 100) / 100.0f, (rand() % 100) / 100.0f, 1.0f);
+			Settings::RegionColorMap.insert(std::pair<unsigned int, glm::vec4>(i, color));
+		}
+
+		/*
+			Now, we loop through all the hexes and find
+			the region closest to them.
+		*/
+		for (int i = 0; i < unordered.size(); i++)
+		{
+			HexNode* hn = &unordered[i];
+
+			if (hn->region != -1) continue;
+
+			float minDist = INFINITY;
+			unsigned int minIndex = 0;
+
+			for (int j = 0; j < regions.size(); j++)
+			{
+				float dist = glm::distance(hn->center, regions[j][0].center);
+
+				if (dist < minDist)
+				{
+					minDist = dist;
+					minIndex = j;
+				}
+			}
+
+			hn->regionDistance = minDist;
+			hn->region = minIndex;
+			regions[minIndex].push_back(*hn);
+		}
+
+		/*
+			Quickly, we're going to sort each region by each hex's
+			distance from the center point.
+		*/
+		for (int i = 0; i < regions.size(); i++) std::sort(regions[i].begin(), regions[i].end(), CompareDistances);
+
+		/*
+			Now we find all our plate centers (which are regions).
+		*/
+		selectedStarts.clear();
+
+		for (int i = 0; i < Settings::ContinentCount; i++)
+		{
+			int r = GetVoronoiStart(regions.size(), selectedStarts);
+
+			// We have to set the continent for each of the hexes within.
+			for (int j = 0; j < regions[r].size(); j++)
+			{
+				regions[r][j].continent = i;
+			}
+			
+			continents.push_back({ (unsigned int)r });
+			selectedStarts.push_back(r);
+
+			glm::vec4 color = glm::vec4((rand() % 100) / 100.0f, (rand() % 100) / 100.0f, (rand() % 100) / 100.0f, 1.0f);
+			Settings::ContinentColorMap.insert(std::pair<unsigned int, glm::vec4>(i, color));
+		}
+
+		/*
+			And now we go through all the regions and determine
+			which continent is closest.
+		*/
+		for (int i = 0; i < regions.size(); i++)
+		{
+			if (regions[i][0].continent != -1) continue;
+
+			float minDist = INFINITY;
+			unsigned int minIndex = 0;
+
+			for (int j = 0; j < continents.size(); j++)
+			{
+				float dist = glm::distance(regions[i][0].center, regions[continents[j][0]][0].center);
+
+				if (dist < minDist)
+				{
+					minDist = dist;
+					minIndex = j;
+				}
+			}
+
+			for (int j = 0; j < regions[i].size(); j++)
+			{
+				regions[i][j].continent = minIndex;
+			}
+			continents[minIndex].push_back(i);
+		}
+
+		/*
+			Antepenultimately, we find all the centers of our
+			tectonic plates.
+		*/
+		selectedStarts.clear();
+
+		for (int i = 0; i < Settings::TectonicPlateCount; i++)
+		{
+			int r = GetVoronoiStart(continents.size(), selectedStarts);
+
+			// We have to set the plate for each of the hexes within.
+			for (int j = 0; j < continents[r].size(); j++)
+			{
+				for (int k = 0; k < regions[continents[r][j]].size(); k++)
+				{
+					regions[continents[r][j]][k].tectonicPlate = i;
+				}
+			}
+
+			tectonicPlates.push_back({ (unsigned int)r });
+			selectedStarts.push_back(r);
+
+			glm::vec4 color = glm::vec4((rand() % 100) / 100.0f, (rand() % 100) / 100.0f, (rand() % 100) / 100.0f, 1.0f);
+			Settings::TectonicPlateColorMap.insert(std::pair<unsigned int, glm::vec4>(i, color));
+		}
+
+		/*
+			Penultimately, we go through each continent and sort out
+			which tectonic plate is closest.
+		*/
+		for (int i = 0; i < continents.size(); i++)
+		{
+			if (regions[continents[i][0]][0].tectonicPlate != -1) continue;
+
+			float minDist = INFINITY;
+			unsigned int minIndex = 0;
+
+			for (int j = 0; j < tectonicPlates.size(); j++)
+			{
+				float dist = glm::distance(regions[continents[i][0]][0].center, regions[continents[tectonicPlates[j][0]][0]][0].center);
+
+				if (dist < minDist)
+				{
+					minDist = dist;
+					minIndex = j;
+				}
+			}
+
+			for (int j = 0; j < continents[i].size(); j++)
+			{
+				for (int k = 0; k < regions[continents[i][j]].size(); k++)
+				{
+					regions[continents[i][j]][k].tectonicPlate = minIndex;
+				}
+			}
+
+			for (int j = 0; j < regions[i].size(); j++)
+			{
+				regions[i][j].continent = minIndex;
+			}
+			tectonicPlates[minIndex].push_back(i);
+		}
+
+		/*
+			Now, we go through and sort all our nodes by continent
+			and then by region.
+		*/
+		std::vector<HexNode> out;
+
+		for (int i = 0; i < continents.size(); i++)
+		{
+			for (int j = 0; j < continents[i].size(); j++)
+			{
+				for (int k = 0; k < regions[continents[i][j]].size(); k++)
+				{
+					out.push_back(regions[continents[i][j]][k]);
+				}
+			}
+		}
+
+		return out;
+	}
+
+	/*std::vector<HexNode> VoronoiSort(std::vector<HexNode> unordered, int desiredCount)
 	{
 		srand(time(NULL));
 		int count = 1 + (unordered.size() / desiredCount);
@@ -93,7 +285,7 @@ namespace Mandalin
 			}
 		}
 		return out;
-	}
+	}*/
 
 	struct Vec3Hash
 	{

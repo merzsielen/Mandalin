@@ -8,8 +8,6 @@ namespace Mandalin
 {
 	struct OceanChunk
 	{
-		static constexpr unsigned int MAXTRIS = 10000;
-
 		unsigned int	index;
 		glm::vec3		center;
 
@@ -23,22 +21,11 @@ namespace Mandalin
 	{
 	private:
 		/*-----------------------------------------------*/
-		/* Parameters */
-		/*-----------------------------------------------*/
-		float						offset = 0.99f;
-		glm::vec4					color = glm::vec4(0.13f, 0.55f, 0.69f, 0.5f);
-
-		/*-----------------------------------------------*/
 		/* Chunks */
 		/*-----------------------------------------------*/
 		std::vector<OceanChunk>		chunks;
 
 	public:
-		/*-----------------------------------------------*/
-		/* Parameters */
-		/*-----------------------------------------------*/
-		float						GetOffset() { return offset; }
-
 		/*-----------------------------------------------*/
 		/* Chunks, Cont. */
 		/*-----------------------------------------------*/

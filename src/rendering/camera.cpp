@@ -3,16 +3,17 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "../util/settings.h"
+
 namespace Mandalin
 {
 	/*-----------------------------------------------*/
 	/* Temporary Input Handling */
 	/*-----------------------------------------------*/
-	void Camera::HandleInput(float deltaTime)
+	void Camera::HandleInput(float deltaTime, Planet* planet)
 	{
-		// I know.
-		glm::vec3 planetPosition = glm::vec3(0.0f, 0.0f, 0.0f);
-		float planetRadius = 100.0f;
+		glm::vec3 planetPosition = planet->GetPosition();
+		float planetRadius = planet->GetRadius();
 
 		float distance = glm::distance(position, planetPosition);
 
@@ -26,6 +27,8 @@ namespace Mandalin
 		bool moveDown = ((glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) && !moveUp);
 		bool moveIn = (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS);
 		bool moveOut = ((glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) && !moveIn);
+
+		bool changeFocus = (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS);
 
 		float rotationSpeed = movementSpeed / (180.0f * (distance / (planetRadius + 15.0f)));
 
@@ -56,6 +59,20 @@ namespace Mandalin
 
 		distance = std::min(std::max(distance, minCameraDistance), maxCameraDistance);
 		if (!moveIn && !moveOut) position = distance * glm::normalize(position);
+
+		if (changeFocus && accruedTime > timeThreshold)
+		{
+			accruedTime = 0.0f;
+
+			if (focus == Focus::biome) focus = Focus::continent;
+			else focus = Focus::biome;
+
+			planet->Refocus(focus);
+		}
+		else
+		{
+			accruedTime += deltaTime;
+		}
 	}
 
 	/*-----------------------------------------------*/
@@ -85,9 +102,9 @@ namespace Mandalin
 	/*-----------------------------------------------*/
 	/* Update (Main Loop) */
 	/*-----------------------------------------------*/
-	void Camera::Update(float deltaTime)
+	void Camera::Update(float deltaTime, Planet* planet)
 	{
-		HandleInput(deltaTime);
+		HandleInput(deltaTime, planet);
 
 		glfwGetWindowSize(window, &windowWidth, &windowHeight);
 		glViewport(0, 0, windowWidth, windowHeight);
@@ -111,6 +128,16 @@ namespace Mandalin
 		this->position = position;
 		this->rotation = rotation;
 		this->zoom = zoom;
+
+		this->fov = Settings::FOV;
+		this->nearClip = Settings::NearClip;
+		this->farClip = Settings::FarClip;
+
+		this->movementSpeed = Settings::CameraMovementSpeed;
+		this->minCameraDistance = Settings::MinCameraDistance;
+		this->maxCameraDistance = Settings::MaxCameraDistance;
+
+		this->backgroundColor = Settings::BackgroundColor;
 
 		this->window = window;
 		glfwGetWindowSize(window, &windowWidth, &windowHeight);
