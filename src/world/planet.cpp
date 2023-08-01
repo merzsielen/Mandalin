@@ -516,6 +516,8 @@ namespace Mandalin
 		}
 
 		glBindVertexArray(0);
+		triangles.clear();
+		hexNodes.clear();
 	}
 
 	Planet::Planet(unsigned int worldSize)
@@ -530,10 +532,12 @@ namespace Mandalin
 		for (int i = 0; i < worldSize; i++) polyhedron->Subdivide();
 
 		ocean = new Ocean(polyhedron);
+
+
 		std::vector<HexNode> hexNodes = Hexify(polyhedron);
 		hexNodes = SortNeighbors(hexNodes);
 		GenerateGeometry(hexNodes);
-
+		delete polyhedron;
 	}
 
 	Planet::~Planet()

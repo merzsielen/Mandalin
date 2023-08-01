@@ -107,7 +107,7 @@ namespace Mandalin
 	{
 		int added = 0;
 		std::vector<TriFace> out;
-		out.reserve(faces.size() * 4);
+		// out.reserve(faces.size() * 4);
 
 		std::unordered_map<glm::vec3, unsigned int, Vec3Hash> vertexMap;
 
@@ -208,10 +208,15 @@ namespace Mandalin
 				My brain is a little scattered today
 				bear with me.
 			*/
-			out[added] = { aI, abI, caI };
+			/*out[added] = { aI, abI, caI };
 			out[static_cast<std::vector<Mandalin::TriFace, std::allocator<Mandalin::TriFace>>::size_type>(added) + 1] = { abI, bI, bcI };
 			out[static_cast<std::vector<Mandalin::TriFace, std::allocator<Mandalin::TriFace>>::size_type>(added) + 2] = { caI, bcI, cI };
-			out[static_cast<std::vector<Mandalin::TriFace, std::allocator<Mandalin::TriFace>>::size_type>(added) + 3] = { abI, bcI, caI };
+			out[static_cast<std::vector<Mandalin::TriFace, std::allocator<Mandalin::TriFace>>::size_type>(added) + 3] = { abI, bcI, caI };*/
+
+			out.push_back({ aI, abI, caI });
+			out.push_back({ abI, bI, bcI });
+			out.push_back({ caI, bcI, cI });
+			out.push_back({ abI, bcI, caI });
 
 			// You could fit my brain in a thimble.
 			unsigned int taI = added;
