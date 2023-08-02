@@ -52,9 +52,6 @@ namespace Mandalin
 
 			regions.push_back({ unordered[r] });
 			selectedStarts.push_back(r);
-
-			glm::vec4 color = glm::vec4((rand() % 100) / 100.0f, (rand() % 100) / 100.0f, (rand() % 100) / 100.0f, 1.0f);
-			Settings::RegionColorMap.insert(std::pair<unsigned int, glm::vec4>(i, color));
 		}
 
 		/*
@@ -109,9 +106,6 @@ namespace Mandalin
 			
 			continents.push_back({ (unsigned int)r });
 			selectedStarts.push_back(r);
-
-			glm::vec4 color = glm::vec4((rand() % 100) / 100.0f, (rand() % 100) / 100.0f, (rand() % 100) / 100.0f, 1.0f);
-			Settings::ContinentColorMap.insert(std::pair<unsigned int, glm::vec4>(i, color));
 		}
 
 		/*
@@ -166,7 +160,7 @@ namespace Mandalin
 			selectedStarts.push_back(r);
 
 			glm::vec4 color = glm::vec4((rand() % 100) / 100.0f, (rand() % 100) / 100.0f, (rand() % 100) / 100.0f, 1.0f);
-			Settings::TectonicPlateColorMap.insert(std::pair<unsigned int, glm::vec4>(i, color));
+			Settings::TectonicPlateColors[i] = color;
 		}
 
 		/*

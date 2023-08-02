@@ -8,8 +8,11 @@ namespace Mandalin
 	/*-----------------------------------------------*/
 	void Renderer::Render(Planet* planet)
 	{
-		shaders[0].Use();
-		shaders[0].SetMatrix("MVP", camera->GetViewProjection());
+		shaders[1].Use();
+		shaders[1].SetMatrix("MVP", camera->GetViewProjection());
+		shaders[1].SetInt("Focus", (int)camera->GetFocus());
+		shaders[1].SetVector4Arr("BiomeColors", Settings::BiomeColors[0], 64);
+		shaders[1].SetVector4Arr("PlateColors", Settings::TectonicPlateColors[0], 64);
 
 		Ocean* ocean = planet->GetOcean();
 
@@ -73,10 +76,10 @@ namespace Mandalin
 			oceans. The cost is fairly marginal regardless.
 		*/
 
-		shaders[1].Use();
-		shaders[1].SetMatrix("MVP", camera->GetViewProjection());
-		shaders[1].SetFloat("time1", time1);
-		shaders[1].SetFloat("time2", time2);
+		shaders[0].Use();
+		shaders[0].SetMatrix("MVP", camera->GetViewProjection());
+		shaders[0].SetFloat("time1", time1);
+		shaders[0].SetFloat("time2", time2);
 
 		for (int i = 0; i < ocean->ChunkCount(); i++)
 		{
@@ -100,13 +103,11 @@ namespace Mandalin
 	{
 		this->camera = camera;
 
-		Shader shader = { "assets/shaders/base.vert", "assets/shaders/base.frag" };
-		shaders.push_back(shader);
-
 		Shader waterShader = { "assets/shaders/water.vert", "assets/shaders/water.frag" };
 		shaders.push_back(waterShader);
 
-		glUseProgram(shader.ID);
+		Shader baseShader = { "assets/shaders/base.vert", "assets/shaders/base.frag" };
+		shaders.push_back(baseShader);
 	}
 
 	Renderer::~Renderer()

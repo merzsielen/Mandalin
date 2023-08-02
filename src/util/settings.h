@@ -67,11 +67,8 @@ namespace Mandalin
 		/*-------------------------------------------------*/
 		/* Maps                                            */
 		/*-------------------------------------------------*/
-		static std::unordered_map<unsigned int, glm::vec4>		BiomeColorMap;
-		static std::unordered_map<unsigned int, glm::vec4>		ChunkColorMap;
-		static std::unordered_map<unsigned int, glm::vec4>		RegionColorMap;
-		static std::unordered_map<unsigned int, glm::vec4>		ContinentColorMap;
-		static std::unordered_map<unsigned int, glm::vec4>		TectonicPlateColorMap;
+		static glm::vec4										BiomeColors[64];
+		static glm::vec4										TectonicPlateColors[64];
 
 		/*-------------------------------------------------*/
 		/* Setup                                           */

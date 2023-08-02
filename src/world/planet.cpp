@@ -7,79 +7,13 @@
 namespace Mandalin
 {
 	/*-----------------------------------------------*/
-	/* Buffers */
-	/*-----------------------------------------------*/
-	void Planet::Refocus(Focus focus)
-	{
-		for (int i = 0; i < chunks.size(); i++)
-		{
-			Chunk* c = &chunks[i];
-
-			glBindVertexArray(c->vao);
-			glBindBuffer(GL_ARRAY_BUFFER, c->vbo);
-
-			Triangle triangles[Settings::ChunkMaxTris]{};
-
-			int tris = 0;
-
-			for (int j = 0; j < c->hexCount; j++)
-			{
-				Hex* h = &c->hexes[j];
-
-				glm::vec4 color;
-
-				if (focus == Focus::biome)
-				{
-					int biomeVariation = (((int)h->biome * 5) - 4) + h->biomeVariation;
-					if (biomeVariation < 0) biomeVariation = 0;
-					color = Settings::BiomeColorMap[biomeVariation];
-				}
-				else if (focus == Focus::region)
-				{
-					color = Settings::RegionColorMap[h->region];
-				}
-				else if (focus == Focus::continent)
-				{
-					color = Settings::ContinentColorMap[h->continent];
-				}
-				else // if (focus == Focus::tectonicPlate)
-				{
-					color = Settings::TectonicPlateColorMap[h->tectonicPlate];
-				}
-
-				int triStart = tris * sizeof(Triangle);
-				int colorStart = 3 * sizeof(float);
-
-				int loops = (h->tris == 6 || h->tris == 18) ? 6 : 5;
-
-				for (int k = 0; k < loops; k++)
-				{
-					int triOffset = k * sizeof(Triangle);
-
-					for (int l = 0; l < 3; l++)
-					{
-						int vertOffset = l * sizeof(Vertex);
-
-						glBufferSubData(GL_ARRAY_BUFFER, triStart + colorStart + triOffset + vertOffset, 4 * sizeof(float), &color);
-					}
-				}
-
-				tris += h->tris;
-			}
-
-			glBindVertexArray(0);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		}
-	}
-
-	/*-----------------------------------------------*/
 	/* World Generation */
 	/*-----------------------------------------------*/
 	float Planet::GetRise(Biome biome)
 	{
-		if (biome == Biome::ocean) return radius - (radius * Settings::OceanOffset) - 5.0f;
-		else if (biome == Biome::highlands) return 0.95f;
-		else if (biome == Biome::mountain) return 1.5f;
+		if (biome == Biome::ocean) return radius - (radius * Settings::OceanOffset) - (5.0f * (3.0f / worldSize));
+		else if (biome == Biome::highlands) return 0.95f * (3.0f / worldSize);
+		else if (biome == Biome::mountain) return 1.5f * (3.0f / worldSize);
 
 		return 0.5f;
 	}
@@ -341,7 +275,7 @@ namespace Mandalin
 		return hexNodes;
 	}
 
-	std::vector<HexNode> Planet::GenerateBiomes(std::vector<HexNode> hexNodes)
+	std::vector<HexNode> Planet::GenerateTopology(std::vector<HexNode> hexNodes)
 	{
 		/*
 			Now, we go through and find the biome of each
@@ -416,21 +350,6 @@ namespace Mandalin
 				if (hn->ocean != neighbor->ocean) hn->oceanNeighbor = true;
 				if (!hn->fault && neighbor->fault) hn->faultNeighbor = true;
 			}
-		}
-
-		/*
-			And now that we've marked off our oceans and mountains,
-			we can go through and find all our other biomes.
-
-			This is going to be a multi-stage process.
-		*/
-		for (int i = 0; i < hexNodes.size(); i++)
-		{
-			HexNode* hn = &hexNodes[i];
-
-			if (hn->ocean) hn->biome = Biome::ocean;
-			else if (hn->faultNeighbor || (hn->fault && hn->oceanNeighbor)) hn->biome = Biome::highlands;
-			else if (hn->fault) hn->biome = Biome::mountain;
 
 			if (hn->ocean) hn->biomeVariation = 0;
 			else hn->biomeVariation = rand() % 5;
@@ -442,19 +361,12 @@ namespace Mandalin
 	void Planet::GenerateGeometry(std::vector<HexNode> hexNodes)
 	{
 		/*
-			Quickly, we'll figure out how many chunks we're going to have and
-			add their colors to the map.
-		*/
-		for (int i = 0; i < 1 + (hexNodes.size() / Settings::ChunkMaxHexes); i++)
-		{
-			glm::vec4 color = glm::vec4((rand() % 100) / 100.0f, (rand() % 100) / 100.0f, (rand() % 100) / 100.0f, 1.0f);
-			Settings::ChunkColorMap.insert(std::pair<unsigned int, glm::vec4>(i, color));
-		}
-
-		/*
-			And *now* we go through and convert to triangles.
+			Now, we go through and convert to triangles.
 		*/
 		std::vector<Triangle> triangles;
+
+		glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		glm::vec4 sideColor = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
 
 		for (int i = 0; i < hexNodes.size(); i++)
 		{
@@ -463,9 +375,9 @@ namespace Mandalin
 			float rise = GetRise(hn->biome);
 			glm::vec3 offset = rise * glm::normalize(hn->center);
 
-			int biomeVariation = (((int)hn->biome * 5) - 4) + hn->biomeVariation;
-			if (biomeVariation < 0) biomeVariation = 0;
-			glm::vec4 color = Settings::BiomeColorMap[biomeVariation];
+			int sideBiomeVariation = (((int)hn->biome * 5) - 4);
+			if (sideBiomeVariation < 0) sideBiomeVariation = 0;
+			int biomeVariation = sideBiomeVariation + hn->biomeVariation;
 
 			// Here, we find the vertices which will make up the corners
 			// of the hex.
@@ -494,9 +406,9 @@ namespace Mandalin
 
 				Triangle t =
 				{
-					{ a.x, a.y, a.z, color.r, color.g, color.b, color.a },
-					{ b.x, b.y, b.z, color.r, color.g, color.b, color.a },
-					{ c.x, c.y, c.z, color.r, color.g, color.b, color.a }
+					{ a.x, a.y, a.z, color.r, color.g, color.b, color.a, biomeVariation, hn->tectonicPlate },
+					{ b.x, b.y, b.z, color.r, color.g, color.b, color.a, biomeVariation, hn->tectonicPlate },
+					{ c.x, c.y, c.z, color.r, color.g, color.b, color.a, biomeVariation, hn->tectonicPlate }
 				};
 
 				triangles.push_back(t);
@@ -507,8 +419,6 @@ namespace Mandalin
 			// We only do this if necessary.
 			if (hn->oceanNeighbor || hn->fault || hn->faultNeighbor)
 			{
-				color = glm::vec4(color.r / 2.0f, color.g / 2.0f, color.b / 2.0f, color.a);
-
 				glm::vec3 onset = -((radius / 4.0f) * glm::normalize(hn->center));
 
 				for (int j = 0; j < verts.size(); j++)
@@ -520,16 +430,16 @@ namespace Mandalin
 
 					Triangle adb =
 					{
-						{ a.x, a.y, a.z, color.r, color.g, color.b, color.a },
-						{ d.x, d.y, d.z, color.r, color.g, color.b, color.a },
-						{ b.x, b.y, b.z, color.r, color.g, color.b, color.a }
+						{ a.x, a.y, a.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate },
+						{ d.x, d.y, d.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate },
+						{ b.x, b.y, b.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate }
 					};
 
 					Triangle acd =
 					{
-						{ a.x, a.y, a.z, color.r, color.g, color.b, color.a },
-						{ c.x, c.y, c.z, color.r, color.g, color.b, color.a },
-						{ d.x, d.y, d.z, color.r, color.g, color.b, color.a }
+						{ a.x, a.y, a.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate },
+						{ c.x, c.y, c.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate },
+						{ d.x, d.y, d.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate }
 					};
 
 					triangles.push_back(adb);
@@ -624,6 +534,14 @@ namespace Mandalin
 			glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, r));
 			glEnableVertexAttribArray(1);
 
+			// Added Colors
+			glVertexAttribIPointer(2, 1, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, biome));
+			glEnableVertexAttribArray(2);
+
+			// Tectonic Plate Color
+			glVertexAttribIPointer(3, 1, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, tectonicPlate));
+			glEnableVertexAttribArray(3);
+
 			unsigned int indices[Settings::ChunkMaxTris * 3];
 			for (int i = 0; i < Settings::ChunkMaxTris; i++)
 			{
@@ -663,6 +581,7 @@ namespace Mandalin
 
 		std::vector<HexNode> hexNodes = Hexify(polyhedron);
 		hexNodes = SortNeighbors(hexNodes);
+		hexNodes = GenerateTopology(hexNodes);
 		hexNodes = GenerateBiomes(hexNodes);
 		GenerateGeometry(hexNodes);
 		delete polyhedron;

@@ -66,9 +66,9 @@ namespace Mandalin
 		/*-----------------------------------------------*/
 		/* Input Handling */
 		/*-----------------------------------------------*/
-		Focus				focus = Focus::biome;
+		Focus				focus = Focus::primary;
 		float				accruedTime = 0.0f;
-		float				timeThreshold = 1.0f;
+		float				timeThreshold = 0.25f;
 		void				HandleInput(float deltaTime, Planet* planet);
 
 	public:
@@ -115,6 +115,11 @@ namespace Mandalin
 		glm::vec4			GetBackgroundColor() { return backgroundColor; }
 
 		void				SetBackgroundColor(glm::vec4 color) { backgroundColor = color; }
+
+		/*-----------------------------------------------*/
+		/* Input Handling */
+		/*-----------------------------------------------*/
+		Focus				GetFocus() { return focus; }
 
 		/*-----------------------------------------------*/
 		/* Update (Main Loop) */

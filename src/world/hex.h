@@ -8,7 +8,7 @@ namespace Mandalin
 	/*-------------------------------------------------*/
 	/* Focuses                                         */
 	/*-------------------------------------------------*/
-	enum class Focus { biome, region, continent, tectonicPlate };
+	enum class Focus { primary, biome, tectonicPlate };
 
 	/*-------------------------------------------------*/
 	/* Biomes                                          */

@@ -19,11 +19,15 @@ namespace Mandalin
 		float			y;
 		float			z;
 
-		// Color
+		// Primary Color
 		float			r;
 		float			g;
 		float			b;
 		float			a;
+
+		// Indexed Colors
+		int				biome;
+		int				tectonicPlate;
 	};
 
 	/*-------------------------------------------------*/

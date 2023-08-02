@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "ocean.h"
+#include "biomes.h"
 #include "../util/checkerror.h"
 
 namespace Mandalin
@@ -71,11 +71,6 @@ namespace Mandalin
 		Ocean*					GetOcean() { return ocean; }
 
 		/*-----------------------------------------------*/
-		/* Buffers */
-		/*-----------------------------------------------*/
-		void					Refocus(Focus focus);
-
-		/*-----------------------------------------------*/
 		/* World Generation */
 		/*-----------------------------------------------*/
 		/*
@@ -91,7 +86,7 @@ namespace Mandalin
 		Biome					GetBiome(HexNode* hn);
 		std::vector<HexNode>	Hexify(Polyhedron* polyhedron);
 		std::vector<HexNode>	SortNeighbors(std::vector<HexNode> hexNodes);
-		std::vector<HexNode>	GenerateBiomes(std::vector<HexNode> hexNodes);
+		std::vector<HexNode>	GenerateTopology(std::vector<HexNode> hexNodes);
 		void					GenerateGeometry(std::vector<HexNode> hexNodes);
 
 		/*---------------------*/

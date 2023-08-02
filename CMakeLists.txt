@@ -19,6 +19,8 @@ set(BASE_SRCS
     "src/util/geometry.h"
     "src/util/settings.cpp"
     "src/util/settings.h"
+    "src/world/biomes.cpp"
+    "src/world/biomes.h"
     "src/world/chunk.h"
     "src/world/hex.h"
     "src/world/ocean.h"

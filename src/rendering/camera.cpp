@@ -28,7 +28,9 @@ namespace Mandalin
 		bool moveIn = (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS);
 		bool moveOut = ((glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) && !moveIn);
 
-		bool changeFocus = (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS);
+		bool primaryFocus = (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS);
+		bool biomeFocus = (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS);
+		bool plateFocus = (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS);
 
 		float rotationSpeed = movementSpeed / (180.0f * (distance / (planetRadius + 15.0f)));
 
@@ -60,16 +62,15 @@ namespace Mandalin
 		distance = std::min(std::max(distance, minCameraDistance), maxCameraDistance);
 		if (!moveIn && !moveOut) position = distance * glm::normalize(position);
 
-		if (changeFocus && accruedTime > timeThreshold)
+		if ((primaryFocus || biomeFocus || plateFocus) && (accruedTime >= timeThreshold))
 		{
 			accruedTime = 0.0f;
 
-			if (focus == Focus::biome) focus = Focus::continent;
-			else focus = Focus::biome;
-
-			planet->Refocus(focus);
+			if (primaryFocus) focus = Focus::primary;
+			else if (biomeFocus) focus = Focus::biome;
+			else if (plateFocus) focus = Focus::tectonicPlate;
 		}
-		else
+		else if (accruedTime < timeThreshold)
 		{
 			accruedTime += deltaTime;
 		}
