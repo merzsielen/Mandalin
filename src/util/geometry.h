@@ -65,7 +65,7 @@ namespace Mandalin
 		glm::vec3					center;
 		std::vector<unsigned int>	neighbors;
 
-		Biome						biome = Biome::flatlands;
+		Biome						biome = Biome::broadleafforest;
 		unsigned int				biomeVariation = 0;
 
 		float						latitude = 0.0f;

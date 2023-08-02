@@ -17,7 +17,7 @@ namespace Mandalin
 		There are going to be a number of different
 		biomes, as you might imagine.
 	*/
-	enum class Biome { ocean, mountain, highlands, flatlands };
+	enum class Biome { ocean, mountain, highlands, desert, steppe, savanna, dryforest, broadleafforest, rainforest, tundra, taiga, mediterranean, oceanic };
 
 	/*-------------------------------------------------*/
 	/* Hex                                             */

@@ -15,7 +15,7 @@ namespace Mandalin
 		else if (biome == Biome::highlands) return 0.95f * (3.0f / worldSize);
 		else if (biome == Biome::mountain) return 1.5f * (3.0f / worldSize);
 
-		return 0.5f;
+		return 0.5f * (3.0f / worldSize);
 	}
 
 	std::vector<HexNode> Planet::Hexify(Polyhedron* polyhedron)

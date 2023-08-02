@@ -62,7 +62,7 @@ namespace Mandalin
 
 				float theta = acosf(dotABC / magABC);
 
-				if (theta < highestTheta)
+				if (theta < highestTheta || isnan(theta))
 				{
 					glBindVertexArray(c->vao);
 					glBindBuffer(GL_ARRAY_BUFFER, c->vbo);
