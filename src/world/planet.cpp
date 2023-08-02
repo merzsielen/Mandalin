@@ -421,7 +421,7 @@ namespace Mandalin
 
 			// And now we add the sides.
 			// We only do this if necessary.
-			if (hn->oceanNeighbor || hn->fault || hn->faultNeighbor)
+			if (hn->oceanNeighbor || hn->biome == Biome::mountain || hn->biome == Biome::highlands)
 			{
 				glm::vec3 onset = -((radius / 4.0f) * glm::normalize(hn->center));
 
