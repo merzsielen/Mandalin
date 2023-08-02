@@ -28,9 +28,15 @@ namespace Mandalin
 		bool moveIn = (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS);
 		bool moveOut = ((glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) && !moveIn);
 
+		bool rotateRight = (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS);
+		bool rotateLeft = ((glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) && !rotateRight);
+
 		bool primaryFocus = (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS);
 		bool biomeFocus = (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS);
 		bool plateFocus = (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS);
+		bool tempFocus = (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS);
+		bool rainFocus = (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS);
+		bool focusSwitch = (primaryFocus || biomeFocus || plateFocus || tempFocus || rainFocus);
 
 		float rotationSpeed = movementSpeed / (180.0f * (distance / (planetRadius + 15.0f)));
 
@@ -59,16 +65,21 @@ namespace Mandalin
 		if (moveIn && (distance < maxCameraDistance)) position += forward * movementSpeed * zoom * deltaTime;
 		else if (moveOut && (distance > minCameraDistance)) position -=  forward * movementSpeed * zoom * deltaTime;
 
+		if (rotateRight) rotation = Slerp(rotation, rotation * Quaternion(deltaTime, 0.0f, 0.0f, 1.0f), deltaTime);
+		else if (rotateLeft) rotation = Slerp(rotation, rotation * Quaternion(deltaTime, 0.0f, 0.0f, -1.0f), deltaTime);
+
 		distance = std::min(std::max(distance, minCameraDistance), maxCameraDistance);
 		if (!moveIn && !moveOut) position = distance * glm::normalize(position);
 
-		if ((primaryFocus || biomeFocus || plateFocus) && (accruedTime >= timeThreshold))
+		if (focusSwitch && (accruedTime >= timeThreshold))
 		{
 			accruedTime = 0.0f;
 
 			if (primaryFocus) focus = Focus::primary;
 			else if (biomeFocus) focus = Focus::biome;
 			else if (plateFocus) focus = Focus::tectonicPlate;
+			else if (tempFocus) focus = Focus::temperature;
+			else if (rainFocus) focus = Focus::rainfall;
 		}
 		else if (accruedTime < timeThreshold)
 		{

@@ -25,9 +25,9 @@ namespace Mandalin
 
 			Triangle tri =
 			{
-				{ a.x, a.y, a.z, color.r, color.g, color.b, color.a, 0.0f, 0.0f },
-				{ b.x, b.y, b.z, color.r, color.g, color.b, color.a, 0.0f, 0.0f },
-				{ c.x, c.y, c.z, color.r, color.g, color.b, color.a, 0.0f, 0.0f }
+				{ a.x, a.y, a.z, color.r, color.g, color.b, color.a, 0.0f, 0.0f, 0.0f },
+				{ b.x, b.y, b.z, color.r, color.g, color.b, color.a, 0.0f, 0.0f, 0.0f },
+				{ c.x, c.y, c.z, color.r, color.g, color.b, color.a, 0.0f, 0.0f, 0.0f }
 			};
 
 			triangles.push_back(tri);

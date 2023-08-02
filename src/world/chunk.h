@@ -28,6 +28,10 @@ namespace Mandalin
 		// Indexed Colors
 		int				biome;
 		int				tectonicPlate;
+		
+		// Variables
+		float			temperature;
+		float			rainfall;
 	};
 
 	/*-------------------------------------------------*/

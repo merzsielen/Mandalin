@@ -17,11 +17,13 @@ namespace Mandalin
 		/*-------------------------------------------------*/
 		/* Planet                                          */
 		/*-------------------------------------------------*/
-		static constexpr unsigned int	WorldSize = 7;
+		static constexpr unsigned int	WorldSize = 6;
 		static constexpr unsigned int	RegionCount = 100 * WorldSize;
 		static constexpr unsigned int	ContinentCount = 20 * WorldSize;
 		static constexpr unsigned int	TectonicPlateCount = 3 * WorldSize;
+
 		static constexpr unsigned int	CoastRoughingIterations = 30;
+		static constexpr unsigned int	MountainSpreadingIterations = 5;
 
 		/*-------------------------------------------------*/
 		/* Ocean                                           */

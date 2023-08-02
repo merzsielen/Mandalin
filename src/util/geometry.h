@@ -68,6 +68,10 @@ namespace Mandalin
 		Biome						biome = Biome::flatlands;
 		unsigned int				biomeVariation = 0;
 
+		float						latitude = 0.0f;
+		float						temperature = 0.0f;
+		float						rainfall = 0.0f;
+
 		bool						fault = false;
 		bool						faultNeighbor = false;
 		bool						ocean = false;

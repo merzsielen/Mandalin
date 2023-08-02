@@ -11,7 +11,7 @@ namespace Mandalin
 	/*-----------------------------------------------*/
 	float Planet::GetRise(Biome biome)
 	{
-		if (biome == Biome::ocean) return radius - (radius * Settings::OceanOffset) - (5.0f * (3.0f / worldSize));
+		if (biome == Biome::ocean) return (radius - (radius * Settings::OceanOffset) - 5.0f) * (3.0f / worldSize);
 		else if (biome == Biome::highlands) return 0.95f * (3.0f / worldSize);
 		else if (biome == Biome::mountain) return 1.5f * (3.0f / worldSize);
 
@@ -396,6 +396,10 @@ namespace Mandalin
 				verts.push_back((a + b + c) / 3.0f);
 			}
 
+			// Quickly, we need to calculate some things.
+			float temp = (hn->temperature + 25) / 55.0f;
+			float rain = hn->rainfall / 5000.0f;
+
 			// Now we go about actually putting the hex together.
 			// First, we add the top of the hex.
 			for (int j = 0; j < verts.size(); j++)
@@ -406,9 +410,9 @@ namespace Mandalin
 
 				Triangle t =
 				{
-					{ a.x, a.y, a.z, color.r, color.g, color.b, color.a, biomeVariation, hn->tectonicPlate },
-					{ b.x, b.y, b.z, color.r, color.g, color.b, color.a, biomeVariation, hn->tectonicPlate },
-					{ c.x, c.y, c.z, color.r, color.g, color.b, color.a, biomeVariation, hn->tectonicPlate }
+					{ a.x, a.y, a.z, color.r, color.g, color.b, color.a, biomeVariation, hn->tectonicPlate, temp, rain },
+					{ b.x, b.y, b.z, color.r, color.g, color.b, color.a, biomeVariation, hn->tectonicPlate, temp, rain },
+					{ c.x, c.y, c.z, color.r, color.g, color.b, color.a, biomeVariation, hn->tectonicPlate, temp, rain }
 				};
 
 				triangles.push_back(t);
@@ -430,16 +434,16 @@ namespace Mandalin
 
 					Triangle adb =
 					{
-						{ a.x, a.y, a.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate },
-						{ d.x, d.y, d.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate },
-						{ b.x, b.y, b.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate }
+						{ a.x, a.y, a.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate, temp, rain },
+						{ d.x, d.y, d.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate, temp, rain },
+						{ b.x, b.y, b.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate, temp, rain }
 					};
 
 					Triangle acd =
 					{
-						{ a.x, a.y, a.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate },
-						{ c.x, c.y, c.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate },
-						{ d.x, d.y, d.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate }
+						{ a.x, a.y, a.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate, temp, rain },
+						{ c.x, c.y, c.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate, temp, rain },
+						{ d.x, d.y, d.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate, temp, rain }
 					};
 
 					triangles.push_back(adb);
@@ -534,13 +538,21 @@ namespace Mandalin
 			glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, r));
 			glEnableVertexAttribArray(1);
 
-			// Added Colors
+			// Biome Color Index
 			glVertexAttribIPointer(2, 1, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, biome));
 			glEnableVertexAttribArray(2);
 
-			// Tectonic Plate Color
+			// Tectonic Plate Color Index
 			glVertexAttribIPointer(3, 1, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, tectonicPlate));
 			glEnableVertexAttribArray(3);
+
+			// Temperature
+			glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, temperature));
+			glEnableVertexAttribArray(4);
+
+			// Rainfall
+			glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, rainfall));
+			glEnableVertexAttribArray(5);
 
 			unsigned int indices[Settings::ChunkMaxTris * 3];
 			for (int i = 0; i < Settings::ChunkMaxTris; i++)
@@ -582,7 +594,7 @@ namespace Mandalin
 		std::vector<HexNode> hexNodes = Hexify(polyhedron);
 		hexNodes = SortNeighbors(hexNodes);
 		hexNodes = GenerateTopology(hexNodes);
-		hexNodes = GenerateBiomes(hexNodes);
+		hexNodes = GenerateBiomes(hexNodes, position, radius);
 		GenerateGeometry(hexNodes);
 		delete polyhedron;
 	}
