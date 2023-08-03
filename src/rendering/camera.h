@@ -15,7 +15,7 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
-#include "../world/planet.h"
+#include "../simulation/history.h"
 #include "../util/geometry.h"
 
 namespace Mandalin
@@ -67,8 +67,11 @@ namespace Mandalin
 		/* Input Handling */
 		/*-----------------------------------------------*/
 		Focus				focus = Focus::primary;
-		float				accruedTime = 0.0f;
-		float				timeThreshold = 0.25f;
+		float				focusAccruedTime = 0.0f;
+		float				focusTimeThreshold = 0.25f;
+
+		bool				pause = true;
+
 		void				HandleInput(float deltaTime, Planet* planet);
 
 	public:
@@ -120,6 +123,7 @@ namespace Mandalin
 		/* Input Handling */
 		/*-----------------------------------------------*/
 		Focus				GetFocus() { return focus; }
+		bool				GetPause() { return pause; }
 
 		/*-----------------------------------------------*/
 		/* Update (Main Loop) */

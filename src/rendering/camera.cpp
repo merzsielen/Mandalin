@@ -36,34 +36,39 @@ namespace Mandalin
 		bool plateFocus = (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS);
 		bool tempFocus = (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS);
 		bool rainFocus = (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS);
-		bool focusSwitch = (primaryFocus || biomeFocus || plateFocus || tempFocus || rainFocus);
+		bool popFocus = (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS);
+		bool langFocus = (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS);
+		bool focusSwitch = (primaryFocus || biomeFocus || plateFocus || tempFocus || rainFocus || popFocus || langFocus);
 
-		float rotationSpeed = movementSpeed / (180.0f * (distance / (planetRadius + 15.0f)));
+		bool pauseSwitch = (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
+
+		float tempMoveSpeed = movementSpeed / (distance / 115.0f);
+		float rotationSpeed = tempMoveSpeed / (180.0f * (distance / (planetRadius + 15.0f)));
 
 		if (moveRight)
 		{
-			position += right * movementSpeed * zoom * deltaTime;
+			position += right * tempMoveSpeed * zoom * deltaTime;
 			rotation = Slerp(rotation, rotation * Quaternion(deltaTime, 0.0f, 1.0f, 0.0f), deltaTime * rotationSpeed);
 		}
 		else if (moveLeft)
 		{
-			position -= right * movementSpeed * zoom * deltaTime;
+			position -= right * tempMoveSpeed * zoom * deltaTime;
 			rotation = Slerp(rotation, rotation * Quaternion(deltaTime, 0.0f, -1.0f, 0.0f), deltaTime * rotationSpeed);
 		}
 
 		if (moveUp)
 		{
-			position += up * movementSpeed * zoom * deltaTime;
+			position += up * tempMoveSpeed * zoom * deltaTime;
 			rotation = Slerp(rotation, rotation * Quaternion(deltaTime, -1.0f, 0.0f, 0.0f), deltaTime * rotationSpeed);
 		}
 		else if (moveDown)
 		{
-			position -= up * movementSpeed * zoom * deltaTime;
+			position -= up * tempMoveSpeed * zoom * deltaTime;
 			rotation = Slerp(rotation, rotation * Quaternion(deltaTime, 1.0f, 0.0f, 0.0f), deltaTime * rotationSpeed);
 		}
 
-		if (moveIn && (distance < maxCameraDistance)) position += forward * movementSpeed * zoom * deltaTime;
-		else if (moveOut && (distance > minCameraDistance)) position -=  forward * movementSpeed * zoom * deltaTime;
+		if (moveIn && (distance < maxCameraDistance)) position += forward * (tempMoveSpeed / 2.0f) * zoom * deltaTime;
+		else if (moveOut && (distance > minCameraDistance)) position -=  forward * (tempMoveSpeed / 2.0f) * zoom * deltaTime;
 
 		if (rotateRight) rotation = Slerp(rotation, rotation * Quaternion(deltaTime, 0.0f, 0.0f, 1.0f), deltaTime);
 		else if (rotateLeft) rotation = Slerp(rotation, rotation * Quaternion(deltaTime, 0.0f, 0.0f, -1.0f), deltaTime);
@@ -71,19 +76,26 @@ namespace Mandalin
 		distance = std::min(std::max(distance, minCameraDistance), maxCameraDistance);
 		if (!moveIn && !moveOut) position = distance * glm::normalize(position);
 
-		if (focusSwitch && (accruedTime >= timeThreshold))
+		if (focusSwitch && (focusAccruedTime >= focusTimeThreshold))
 		{
-			accruedTime = 0.0f;
+			focusAccruedTime = 0.0f;
 
 			if (primaryFocus) focus = Focus::primary;
 			else if (biomeFocus) focus = Focus::biome;
 			else if (plateFocus) focus = Focus::tectonicPlate;
 			else if (tempFocus) focus = Focus::temperature;
 			else if (rainFocus) focus = Focus::rainfall;
+			else if (popFocus) focus = Focus::population;
+			else if (langFocus) focus = Focus::language;
 		}
-		else if (accruedTime < timeThreshold)
+		else if (focusAccruedTime < focusTimeThreshold)
 		{
-			accruedTime += deltaTime;
+			focusAccruedTime += deltaTime;
+		}
+
+		if (pauseSwitch)
+		{
+			pause = !pause;
 		}
 	}
 

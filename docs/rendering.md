@@ -21,8 +21,7 @@
  more complicated than it would otherwise be.
 
 ## Temporary Notes
- * Different shader batches for different lenses
- (geography, political, ethnicity, religion, etc.)
- * Use the vertex shader to create wave oscillation, idk.
- vec3 finalPos = pos + (0.1 * normalizedPos * rand) or
- something.
+ * Use the "random" number generator in water.vert to
+ generate random colors based off the index of the
+ various entities that can "control" certain hexes.
+ * Split the input in camera into its own file.

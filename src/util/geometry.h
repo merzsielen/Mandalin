@@ -77,6 +77,8 @@ namespace Mandalin
 		bool						ocean = false;
 		bool						oceanNeighbor = false;
 
+		bool						rivers = false;
+
 		int							region = -1;
 		int							continent = -1;
 		int							tectonicPlate = -1;

@@ -25,13 +25,17 @@ namespace Mandalin
 		float			b;
 		float			a;
 
-		// Indexed Colors
+		// Biome & Geology
 		int				biome;
 		int				tectonicPlate;
 		
-		// Variables
+		// Climate
 		float			temperature;
 		float			rainfall;
+
+		// Dominant Pops
+		int				population;
+		int				language;
 	};
 
 	/*-------------------------------------------------*/

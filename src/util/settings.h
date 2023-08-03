@@ -11,13 +11,29 @@ namespace Mandalin
 	{
 		/*------------------------------------------------------------------------------------------------------*/
 		/*  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  */
+		/* Simulation                                                                                           */
+		/*  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  */
+		/*------------------------------------------------------------------------------------------------------*/
+		/*-------------------------------------------------*/
+		/* Inputs                                          */
+		/*-------------------------------------------------*/
+		static constexpr float			TicRate = 0.5f;
+
+		/*-------------------------------------------------*/
+		/* Chronology                                      */
+		/*-------------------------------------------------*/
+		static constexpr unsigned int	DaysPerMonth = 30;
+		static constexpr unsigned int	MonthsPerYear = 12;
+
+		/*------------------------------------------------------------------------------------------------------*/
+		/*  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  */
 		/* World Generation                                                                                     */
 		/*  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  */
 		/*------------------------------------------------------------------------------------------------------*/
 		/*-------------------------------------------------*/
 		/* Planet                                          */
 		/*-------------------------------------------------*/
-		static constexpr unsigned int	WorldSize = 5;
+		static constexpr unsigned int	WorldSize = 6;
 		static constexpr unsigned int	RegionCount = 100 * WorldSize;
 		static constexpr unsigned int	ContinentCount = 20 * WorldSize;
 		static constexpr unsigned int	TectonicPlateCount = 2 * WorldSize;
@@ -33,6 +49,7 @@ namespace Mandalin
 		static constexpr unsigned int	WindStrength = 10;
 		static constexpr unsigned int	WaterSearchDistance = 10;
 
+		static constexpr unsigned int	RiverCount = WorldSize * 10;
 
 		/*-------------------------------------------------*/
 		/* Ocean                                           */

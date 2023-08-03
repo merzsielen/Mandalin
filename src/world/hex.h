@@ -8,7 +8,7 @@ namespace Mandalin
 	/*-------------------------------------------------*/
 	/* Focuses                                         */
 	/*-------------------------------------------------*/
-	enum class Focus { primary, biome, tectonicPlate, temperature, rainfall };
+	enum class Focus { primary, biome, tectonicPlate, temperature, rainfall, population, language };
 
 	/*-------------------------------------------------*/
 	/* Biomes                                          */
@@ -49,8 +49,16 @@ namespace Mandalin
 		unsigned int	continent;
 		unsigned int	tectonicPlate;
 
+		// Majorities
+		unsigned int	populationID;
+		unsigned int	languageID;
+
+		// Variables
+		unsigned int	population;
+
 		// Associated Tris
 		unsigned int	tris;
+		unsigned int	trisIndex;
 		
 		// The chunk indices of each neighbor followed by
 		// their indices within that chunk.

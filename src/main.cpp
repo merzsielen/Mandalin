@@ -81,14 +81,19 @@ void main()
 	Mandalin::Settings::Setup();
 	Mandalin::Camera* camera = new Mandalin::Camera({ 0, 1, 113.144f }, { 1, 0, 0, 0 }, 1.0f, window);
 	Mandalin::Renderer* renderer = new Mandalin::Renderer(camera);
+
 	Mandalin::Planet* planet = new Mandalin::Planet(Mandalin::Settings::WorldSize);
+	Mandalin::History* history = new Mandalin::History(planet);
 
 	/*
 		And now we can run the loop.
 	*/
 	float lastTime = 0.0f;
-	auto start = std::chrono::steady_clock::now();
+	auto fpsStart = std::chrono::steady_clock::now();
 	int frameCount = 0;
+
+	float lastTic = 0.0f;
+	auto ticStart = std::chrono::steady_clock::now();
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -97,11 +102,11 @@ void main()
 
 		frameCount++;
 		auto now = std::chrono::steady_clock::now();
-		auto diff = now - start;
+		auto fpsDiff = now - fpsStart;
 
-		if (diff >= std::chrono::seconds(1))
+		if (fpsDiff >= std::chrono::seconds(1))
 		{
-			start = now;
+			fpsStart = now;
 			std::cout << "Frame Count: " << frameCount << std::endl;
 			frameCount = 0;
 
@@ -113,6 +118,12 @@ void main()
 		}
 
 		camera->Update(deltaTime, planet);
+
+		if (!camera->GetPause() && glfwGetTime() > lastTic + Mandalin::Settings::TicRate)
+		{
+			lastTic = glfwGetTime();
+			history->Update();
+		}
 
 		renderer->Render(planet);
 

@@ -65,6 +65,11 @@ namespace Mandalin
 		unsigned int			ChunkCount() { return chunks.size(); }
 		Chunk*					GetChunk(unsigned int i) { return &chunks[i]; }
 
+		Hex*					GetHex(unsigned int chunk, unsigned int index);
+
+		void					SetPopulation(unsigned int chunk, unsigned int hex, int population);
+		void					SetLanguage(unsigned int chunk, unsigned int hex, int language);
+
 		/*-----------------------------------------------*/
 		/* Ocean */
 		/*-----------------------------------------------*/
