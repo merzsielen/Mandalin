@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "biomes.h"
+#include "river.h"
 #include "../util/checkerror.h"
 
 namespace Mandalin
@@ -44,6 +44,11 @@ namespace Mandalin
 		/* Ocean */
 		/*-----------------------------------------------*/
 		Ocean*					ocean;
+
+		/*-----------------------------------------------*/
+		/* Rivers */
+		/*-----------------------------------------------*/
+		RiverSystem*			rivers;
 
 		/*-----------------------------------------------*/
 		/* World Generation Options */

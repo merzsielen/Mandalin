@@ -119,7 +119,7 @@ namespace Mandalin
 
 	void Camera::UpdateView()
 	{
-		view = glm::lookAt(position + CameraForward(), position, CameraUp());
+		view = glm::lookAt(position, position + CameraForward(), CameraUp());
 		// if (lens == Lens::perspective) view = glm::inverse(view);
 	}
 

@@ -88,7 +88,7 @@ namespace Mandalin
 
 		void				UpdateRotation() { NormalizeQuaternion(rotation); }
 		glm::vec3			CameraRight() { return Rotate({ 1.0f, 0.0f, 0.0f }, rotation); }
-		glm::vec3			CameraForward() { return Rotate({ 0.0f, 0.0f, 1.0f }, rotation); }
+		glm::vec3			CameraForward() { return Rotate({ 0.0f, 0.0f, -1.0f }, rotation); }
 		glm::vec3			CameraUp() { return Rotate({ 0.0f, 1.0f, 0.0f }, rotation); }
 
 		/*-----------------------------------------------*/

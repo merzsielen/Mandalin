@@ -78,6 +78,9 @@ namespace Mandalin
 		bool						oceanNeighbor = false;
 
 		bool						rivers = false;
+		int							mountainDistance = -1;
+
+		bool						island = false;
 
 		int							region = -1;
 		int							continent = -1;

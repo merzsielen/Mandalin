@@ -428,123 +428,15 @@ namespace Mandalin
 		srand(time(NULL));
 
 		/*
-			We're going to add rivers now.
-		*/
-		std::vector<unsigned int> riverStarts;
-		std::vector<std::pair<unsigned int, unsigned int>> riverEdges;
-		
-		for (int i = 0; i < Settings::RiverCount; i++)
-		{
-			// Find a mountain to start at.
-			HexNode* start;
-			while (true)
-			{
-				start = &hexNodes[rand() % hexNodes.size()];
-
-				// Gotta make sure it has a non-mountain neighbor.
-				bool nonMountainNeighbor = false;
-				for (int j = 0; j < start->neighbors.size(); j++)
-				{
-					HexNode* neighbor = &hexNodes[start->neighbors[j]];
-					if (neighbor->biome != Biome::mountain &&
-						neighbor->biome != Biome::ocean) nonMountainNeighbor = true;
-				}
-				if (!nonMountainNeighbor) continue;
-
-				// And we have to make sure we're not doing the same
-				// mountain twice.
-				bool alreadyChosen = false;
-				for (int j = 0; j < riverStarts.size(); j++)
-				{
-					if (riverStarts[j] == start->index)
-					{
-						alreadyChosen = true;
-						break;
-					}
-				}
-				if (alreadyChosen) continue;
-
-				if (start->biome == Biome::mountain) break;
-			}
-
-			HexNode* antepast = start;
-			HexNode* past = start;
-			HexNode* current = start;
-			HexNode* next;
-
-			/*
-				FIX THIS!!!
-			*/
-
-			// Run until we hit an ocean.
-			for (int runIters = 0; runIters < 200; runIters++)
-			{
-				current->rivers = true;
-
-				// Get a neighbor that meets certain criteria.
-
-				unsigned int nextIndex = 0;
-				for (int neighborIters = 0; neighborIters < 50; neighborIters++)
-				{
-					HexNode* neighbor = &hexNodes[current->neighbors[rand() % current->neighbors.size()]];
-
-					if (neighbor == antepast ||
-						neighbor->biome == Biome::mountain) continue;
-
-					if (current->biome != Biome::highlands &&
-						neighbor->biome == Biome::highlands) continue;
-
-					bool sharedNeighbor = false;
-					for (int k = 0; k < past->neighbors.size(); k++)
-					{
-						if (past->neighbors[k] == neighbor->index)
-						{
-							sharedNeighbor = true;
-							break;
-						}
-					}
-					if (!sharedNeighbor) continue;
-
-					bool alreadyCrossed = false;
-					for (int k = 0; k < riverEdges.size(); k++)
-					{
-						if ((riverEdges[k].first == current->index &&
-							riverEdges[k].second == neighbor->index) ||
-							(riverEdges[k].first == neighbor->index &&
-							riverEdges[k].second == current->index))
-						{
-							alreadyCrossed = true;
-							break;
-						}
-					}
-					if (alreadyCrossed) continue;
-
-					nextIndex = neighbor->index;
-					break;
-				}
-
-				next = &hexNodes[nextIndex];
-
-				if (next->biome == Biome::ocean) break;
-
-				riverEdges.push_back(std::pair<unsigned int, unsigned int>(current->index, next->index));
-				antepast = past;
-				past = current;
-				current = next;
-			}
-		}
-
-		/*
 			Now, we go through and convert to triangles.
 		*/
 		std::vector<Triangle> triangles;
 
-		glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-		glm::vec4 sideColor = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
-
 		for (int i = 0; i < hexNodes.size(); i++)
 		{
 			HexNode* hn = &hexNodes[i];
+			glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+			glm::vec4 sideColor = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
 
 			float rise = GetRise(hn->biome);
 			glm::vec3 offset = rise * glm::normalize(hn->center);
@@ -553,13 +445,19 @@ namespace Mandalin
 			if (sideBiomeVariation < 0) sideBiomeVariation = 0;
 			int biomeVariation = sideBiomeVariation + hn->biomeVariation;
 
-			std::vector<unsigned int> riverPartners;
+			std::vector<std::pair<unsigned int, unsigned int>> riverPartners;
 			if (hn->rivers)
 			{
-				for (int j = 0; j < riverEdges.size(); j++)
+				for (int j = 0; j < rivers->RiverCount(); j++)
 				{
-					if (riverEdges[j].first == i) riverPartners.push_back(riverEdges[j].second);
-					else if (riverEdges[j].second == i) riverPartners.push_back(riverEdges[j].first);
+					for (int k = 0; k < rivers->GetRiver(j)->nodes.size(); k++)
+					{
+						RiverNode* rivNode = &rivers->GetRiver(j)->nodes[k];
+
+						if (rivNode->a == i) riverPartners.push_back(std::pair<unsigned int, unsigned int>(rivNode->b, rivNode->c));
+						else if (rivNode->b == i) riverPartners.push_back(std::pair<unsigned int, unsigned int>(rivNode->a, rivNode->c));
+						else if (rivNode->c == i) riverPartners.push_back(std::pair<unsigned int, unsigned int>(rivNode->a, rivNode->b));
+					}
 				}
 			}
 
@@ -571,14 +469,18 @@ namespace Mandalin
 				HexNode* neighbor1 = &hexNodes[hn->neighbors[j]];
 				HexNode* neighbor2 = &hexNodes[hn->neighbors[(j + 1) % hn->neighbors.size()]];
 
-				bool river1 = false;
-				bool river2 = false;
+				bool river = false;
 				if (hn->rivers)
 				{
 					for (int k = 0; k < riverPartners.size(); k++)
 					{
-						if (riverPartners[k] == neighbor1->index) river1 = true;
-						else if (riverPartners[k] == neighbor2->index) river2 = true;
+						if ((riverPartners[k].first == neighbor1->index &&
+							riverPartners[k].second == neighbor2->index) ||
+							(riverPartners[k].first == neighbor2->index &&
+							riverPartners[k].second == neighbor1->index))
+						{
+							river = true;
+						}
 					}
 				}
 
@@ -590,21 +492,15 @@ namespace Mandalin
 				glm::vec3 c = neighbor2->center + offset2;
 
 				float total = 3.0f;
-				float bMod = 1.0f;
-				float cMod = 1.0f;
+				float bcMod = 1.0f;
 
-				if (river1)
+				if (river)
 				{
-					bMod -= 0.5f;
-					total -= 0.5f;
-				}
-				if (river2)
-				{
-					cMod -= 0.5f;
-					total -= 0.5f;
+					bcMod = 0.5f;
+					total = 2.0f;
 				}
 
-				glm::vec3 vert = (a + b * bMod + c * cMod) / total;
+				glm::vec3 vert = (a + b * bcMod + c * bcMod) / total;
 				verts.push_back(vert);
 			}
 
@@ -614,7 +510,6 @@ namespace Mandalin
 
 			// Now we go about actually putting the hex together.
 			// First, we add the top of the hex.
-
 			for (int j = 0; j < verts.size(); j++)
 			{
 				glm::vec3 a = hn->center + offset;
@@ -623,9 +518,9 @@ namespace Mandalin
 
 				Triangle t =
 				{
-					{ a.x, a.y, a.z, color.r, color.g, color.b, color.a, biomeVariation, hn->tectonicPlate, temp, rain, 0, 0 },
-					{ b.x, b.y, b.z, color.r, color.g, color.b, color.a, biomeVariation, hn->tectonicPlate, temp, rain, 0, 0 },
-					{ c.x, c.y, c.z, color.r, color.g, color.b, color.a, biomeVariation, hn->tectonicPlate, temp, rain, 0, 0 }
+					{ a.x, a.y, a.z, color.r, color.g, color.b, color.a, 0, biomeVariation, hn->tectonicPlate, temp, rain, 0, 0 },
+					{ b.x, b.y, b.z, color.r, color.g, color.b, color.a, 0, biomeVariation, hn->tectonicPlate, temp, rain, 0, 0 },
+					{ c.x, c.y, c.z, color.r, color.g, color.b, color.a, 0, biomeVariation, hn->tectonicPlate, temp, rain, 0, 0 }
 				};
 
 				triangles.push_back(t);
@@ -634,9 +529,11 @@ namespace Mandalin
 
 			// And now we add the sides.
 			// We only do this if necessary.
-			if (hn->oceanNeighbor || hn->biome == Biome::mountain || hn->biome == Biome::highlands)
+			if (hn->oceanNeighbor || hn->biome == Biome::mountain || hn->biome == Biome::highlands || hn->rivers)
 			{
 				glm::vec3 onset = -((radius / 4.0f) * glm::normalize(hn->center));
+
+				if (hn->rivers) sideColor = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
 
 				for (int j = 0; j < verts.size(); j++)
 				{
@@ -647,16 +544,16 @@ namespace Mandalin
 
 					Triangle adb =
 					{
-						{ a.x, a.y, a.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate, temp, rain, 0, 0 },
-						{ d.x, d.y, d.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate, temp, rain, 0, 0 },
-						{ b.x, b.y, b.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate, temp, rain, 0, 0 }
+						{ a.x, a.y, a.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, (int)hn->rivers, sideBiomeVariation, hn->tectonicPlate, temp, rain, 0, 0 },
+						{ d.x, d.y, d.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, (int)hn->rivers, sideBiomeVariation, hn->tectonicPlate, temp, rain, 0, 0 },
+						{ b.x, b.y, b.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, (int)hn->rivers, sideBiomeVariation, hn->tectonicPlate, temp, rain, 0, 0 }
 					};
 
 					Triangle acd =
 					{
-						{ a.x, a.y, a.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate, temp, rain, 0, 0 },
-						{ c.x, c.y, c.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate, temp, rain, 0, 0 },
-						{ d.x, d.y, d.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, sideBiomeVariation, hn->tectonicPlate, temp, rain, 0, 0 }
+						{ a.x, a.y, a.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, (int)hn->rivers, sideBiomeVariation, hn->tectonicPlate, temp, rain, 0, 0 },
+						{ c.x, c.y, c.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, (int)hn->rivers, sideBiomeVariation, hn->tectonicPlate, temp, rain, 0, 0 },
+						{ d.x, d.y, d.z, sideColor.r, sideColor.g, sideColor.b, sideColor.a, (int)hn->rivers, sideBiomeVariation, hn->tectonicPlate, temp, rain, 0, 0 }
 					};
 
 					triangles.push_back(adb);
@@ -754,29 +651,33 @@ namespace Mandalin
 			glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, r));
 			glEnableVertexAttribArray(1);
 
-			// Biome Color Index
-			glVertexAttribIPointer(2, 1, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, biome));
+			// Rivers
+			glVertexAttribIPointer(2, 1, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, river));
 			glEnableVertexAttribArray(2);
 
-			// Tectonic Plate Color Index
-			glVertexAttribIPointer(3, 1, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, tectonicPlate));
+			// Biome Color Index
+			glVertexAttribIPointer(3, 1, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, biome));
 			glEnableVertexAttribArray(3);
 
-			// Temperature
-			glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, temperature));
+			// Tectonic Plate Color Index
+			glVertexAttribIPointer(4, 1, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, tectonicPlate));
 			glEnableVertexAttribArray(4);
 
-			// Rainfall
-			glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, rainfall));
+			// Temperature
+			glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, temperature));
 			glEnableVertexAttribArray(5);
 
-			// Population Index
-			glVertexAttribIPointer(6, 1, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, population));
+			// Rainfall
+			glVertexAttribPointer(6, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, rainfall));
 			glEnableVertexAttribArray(6);
 
-			// Language Index
-			glVertexAttribIPointer(7, 1, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, language));
+			// Population Index
+			glVertexAttribIPointer(7, 1, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, population));
 			glEnableVertexAttribArray(7);
+
+			// Language Index
+			glVertexAttribIPointer(8, 1, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, language));
+			glEnableVertexAttribArray(8);
 
 			unsigned int indices[Settings::ChunkMaxTris * 3];
 			for (int i = 0; i < Settings::ChunkMaxTris; i++)
@@ -814,11 +715,13 @@ namespace Mandalin
 		for (int i = 0; i < worldSize; i++) polyhedron->Subdivide();
 
 		ocean = new Ocean(polyhedron);
+		rivers = new RiverSystem();
 
 		std::vector<HexNode> hexNodes = Hexify(polyhedron);
 		hexNodes = SortNeighbors(hexNodes);
 		hexNodes = GenerateTopology(hexNodes);
 		hexNodes = GenerateBiomes(hexNodes, position, radius);
+		hexNodes = rivers->GenerateRivers(hexNodes);
 		GenerateGeometry(hexNodes);
 		delete polyhedron;
 	}

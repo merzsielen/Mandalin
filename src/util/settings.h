@@ -43,6 +43,10 @@ namespace Mandalin
 		static constexpr unsigned int	CoastalBiomeSpreadingIterations = WorldSize - 3;
 		static constexpr unsigned int	BiomeRoughingIterations = 5;
 
+		static constexpr unsigned int	IslandInitialChance = 97;
+		static constexpr unsigned int	IslandSpreadChance = 80;
+		static constexpr unsigned int	IslandSpreadingIterations = WorldSize - 3;
+
 		static constexpr float			HadleyCutoff = 0.3f;
 		static constexpr float			FerrelCutoff = 0.6f;
 
@@ -50,6 +54,7 @@ namespace Mandalin
 		static constexpr unsigned int	WaterSearchDistance = 10;
 
 		static constexpr unsigned int	RiverCount = WorldSize * 10;
+		static constexpr unsigned int	MaxRiverIterations = 300;
 
 		/*-------------------------------------------------*/
 		/* Ocean                                           */

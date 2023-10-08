@@ -25,6 +25,9 @@ namespace Mandalin
 		float			b;
 		float			a;
 
+		// Rivers
+		int				river;
+
 		// Biome & Geology
 		int				biome;
 		int				tectonicPlate;

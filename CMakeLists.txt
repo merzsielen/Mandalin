@@ -28,10 +28,12 @@ set(BASE_SRCS
     "src/world/biomes.h"
     "src/world/chunk.h"
     "src/world/hex.h"
-    "src/world/ocean.h"
     "src/world/ocean.cpp"
-    "src/world/planet.h"
+    "src/world/ocean.h"
     "src/world/planet.cpp"
+    "src/world/planet.h"
+    "src/world/river.cpp"
+    "src/world/river.h"
     "src/main.cpp"
 )
 

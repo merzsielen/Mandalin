@@ -181,6 +181,60 @@ namespace Mandalin
 		srand(time(NULL));
 
 		/*
+			First, we're going to add some islands around underwater
+			faultlines.
+		*/
+		for (int i = 0; i < hexNodes.size(); i++)
+		{
+			HexNode* hn = &hexNodes[i];
+
+			if (!hn->ocean) continue;
+
+			if ((hn->faultNeighbor || hn->fault) && rand() % 100 > Settings::IslandInitialChance)
+			{
+				hn->island = true;
+				hn->ocean = false;
+				hn->oceanNeighbor = true;
+				hn->biome = Biome::broadleafforest;
+				hn->biomeVariation = rand() % 5;
+			}
+		}
+
+		/*
+			Now we're going to iterate over the islands and expand them.
+		*/
+		for (int iter = 0; iter < Settings::IslandSpreadingIterations; iter++)
+		{
+			for (int i = 0; i < hexNodes.size(); i++)
+			{
+				HexNode* hn = &hexNodes[i];
+
+				if (!hn->island) continue;
+
+				bool oceanNeighbor = false;
+
+				for (int j = 0; j < hn->neighbors.size(); j++)
+				{
+					HexNode* neighbor = &hexNodes[hn->neighbors[j]];
+
+					if (!neighbor->ocean) continue;
+
+					if (rand() % 100 > Settings::IslandSpreadChance)
+					{
+						neighbor->island = true;
+						neighbor->ocean = false;
+						neighbor->oceanNeighbor = true;
+						neighbor->biome = Biome::broadleafforest;
+						neighbor->biomeVariation = rand() % 5;
+					}
+					else oceanNeighbor = true;
+				}
+
+				hn->oceanNeighbor = oceanNeighbor;
+			}
+		}
+
+		/*
 			We should first mark off our oceans and mountains;
 			then, we can go through and find all our other biomes.
 
@@ -191,8 +245,31 @@ namespace Mandalin
 			HexNode* hn = &hexNodes[i];
 
 			if (hn->ocean) hn->biome = Biome::ocean;
+			else if (hn->island && !hn->fault) hn->biome = Biome::broadleafforest;
 			else if (hn->faultNeighbor || (hn->fault && hn->oceanNeighbor)) hn->biome = Biome::highlands;
 			else if (hn->fault) hn->biome = Biome::mountain;
+		}
+
+		/*
+			Quickly, we need to iterate over our islands to
+			fix our highlands and mountains.
+		*/
+		for (int i = 0; i < hexNodes.size(); i++)
+		{
+			HexNode* hn = &hexNodes[i];
+
+			if (!hn->island) continue;
+
+			for (int j = 0; j < hn->neighbors.size(); j++)
+			{
+				HexNode* neighbor = &hexNodes[hn->neighbors[j]];
+
+				if (neighbor->biome == Biome::mountain)
+				{
+					hn->biome = Biome::highlands;
+					break;
+				}
+			}
 		}
 
 		/*
@@ -212,7 +289,8 @@ namespace Mandalin
 					HexNode* neighbor = &hexNodes[hn->neighbors[j]];
 
 					if (neighbor->biome == Biome::ocean ||
-						neighbor->biome == Biome::mountain) continue;
+						neighbor->biome == Biome::mountain ||
+						neighbor->island) continue;
 
 					if (neighbor->oceanNeighbor &&
 						hn->biome == Biome::mountain) continue;
