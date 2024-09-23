@@ -71,6 +71,8 @@ namespace Mandalin
 		float				focusTimeThreshold = 0.25f;
 
 		bool				pause = true;
+		float				pauseAccruedTime = 0.0f;
+		float				pauseTimeThreshold = 0.25f;
 
 		void				HandleInput(float deltaTime, Planet* planet);
 

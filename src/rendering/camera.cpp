@@ -94,9 +94,18 @@ namespace Mandalin
 			focusAccruedTime += deltaTime;
 		}
 
-		if (pauseSwitch)
+		if (pauseSwitch && (pauseAccruedTime >= pauseTimeThreshold))
 		{
+			pauseAccruedTime = 0.0f;
+
+			if (pause) std::cout << "UNPAUSING" << std::endl;
+			else std::cout << "PAUSING" << std::endl;
+
 			pause = !pause;
+		}
+		else if (pauseAccruedTime < pauseTimeThreshold)
+		{
+			pauseAccruedTime += deltaTime;
 		}
 	}
 

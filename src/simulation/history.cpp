@@ -92,7 +92,7 @@ namespace Mandalin
 				{
 					Hex* neighbor = planet->GetHex(hex->neighbors[k].first, hex->neighbors[k].second);
 
-					if (neighbor->population != hex->population && rand() % 100 + 1 > 75)
+					if (neighbor->population == 0 && neighbor->biome != Biome::ocean)// && rand() % 100 + 1 > 75)
 					{
 						neighbor->population = hex->population;
 						planet->SetPopulation(neighbor->chunk, neighbor->index, hex->population);
@@ -121,35 +121,41 @@ namespace Mandalin
 		this->month = 1;
 		this->year = 1;
 
-		int c = rand() % planet->ChunkCount();
-		Chunk* chunk = planet->GetChunk(c);
-
-		int h;
-		Hex* hex;
-
-		while (true)
+		for (int z = 0; z < 10; z++)
 		{
-			h = rand() % chunk->hexCount;
-			hex = &chunk->hexes[h];
 
-			if (hex->biome != Biome::ocean) break;
+			int c = rand() % planet->ChunkCount();
+			Chunk* chunk = planet->GetChunk(c);
+
+			int h;
+			Hex* hex;
+
+			while (true)
+			{
+				h = rand() % chunk->hexCount;
+				hex = &chunk->hexes[h];
+
+				if (hex->biome != Biome::ocean) break;
+			}
+
+			int popID = rand() % 10000 + 1;
+
+			Subpopulation subpop
+			{
+				popID, c, h, 1.0f
+			};
+
+			Population pop =
+			{
+				popID,
+				{ 0 },
+				{ subpop }
+			};
+
+			hex->population = pop.id;
+			planet->SetPopulation(c, h, pop.id);
+
+			populations.push_back(pop);
 		}
-
-		Subpopulation subpop =
-		{
-			c, h, 1.0f
-		};
-
-		Population pop =
-		{
-			rand() % 10000 + 1,
-			{ 0 },
-			{ subpop }
-		};
-
-		hex->population = pop.id;
-		planet->SetPopulation(c, h, pop.id);
-
-		populations.push_back(pop);
 	}
 }

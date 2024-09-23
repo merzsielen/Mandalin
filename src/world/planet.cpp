@@ -30,6 +30,7 @@ namespace Mandalin
 
 		for (int i = 0; i < h->tris; i++)
 		{
+			
 			int triOffset = i * sizeof(Triangle);
 
 			for (int j = 0; j < 3; j++)
@@ -599,6 +600,7 @@ namespace Mandalin
 					hn->region,
 					hn->continent,
 					hn->tectonicPlate,
+					0,
 					0,
 					0,
 					hn->tris,
