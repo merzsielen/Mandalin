@@ -67,12 +67,13 @@ namespace Mandalin
 			rotation = Slerp(rotation, rotation * Quaternion(deltaTime, 1.0f, 0.0f, 0.0f), deltaTime * rotationSpeed);
 		}
 
-		if (moveIn && (distance < maxCameraDistance)) position += forward * (tempMoveSpeed / 2.0f) * zoom * deltaTime;
-		else if (moveOut && (distance > minCameraDistance)) position -=  forward * (tempMoveSpeed / 2.0f) * zoom * deltaTime;
+		if (moveIn && ((distance - (tempMoveSpeed / 2.0f) * zoom * deltaTime) > minCameraDistance)) position += forward * (tempMoveSpeed / 2.0f) * zoom * deltaTime;
+		else if (moveOut && ((distance + (tempMoveSpeed / 2.0f) * zoom * deltaTime) < maxCameraDistance)) position -=  forward * (tempMoveSpeed / 2.0f) * zoom * deltaTime;
 
 		if (rotateRight) rotation = Slerp(rotation, rotation * Quaternion(deltaTime, 0.0f, 0.0f, 1.0f), deltaTime);
 		else if (rotateLeft) rotation = Slerp(rotation, rotation * Quaternion(deltaTime, 0.0f, 0.0f, -1.0f), deltaTime);
 
+		// float new_distance = glm::distance(position, planetPosition);
 		distance = std::min(std::max(distance, minCameraDistance), maxCameraDistance);
 		if (!moveIn && !moveOut) position = distance * glm::normalize(position);
 

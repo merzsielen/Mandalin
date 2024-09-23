@@ -83,7 +83,7 @@ namespace Mandalin
 		static constexpr float			FarClip = 100.0f;
 
 		static constexpr float			CameraMovementSpeed = 100.0f;
-		static constexpr float			MinCameraDistance = 100.0f;
+		static constexpr float			MinCameraDistance = 101.0f;
 		static constexpr float			MaxCameraDistance = 155.0f;
 
 		/*-------------------------------------------------*/
