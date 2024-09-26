@@ -30,7 +30,6 @@ namespace Mandalin
 
 		for (int i = 0; i < h->tris; i++)
 		{
-			
 			int triOffset = i * sizeof(Triangle);
 
 			for (int j = 0; j < 3; j++)
@@ -603,10 +602,15 @@ namespace Mandalin
 					0,
 					0,
 					0,
+					0,
+					0,
 					hn->tris,
 					c->triCount,
-					{}
+					{},
+					-1
 				};
+
+				hex.lcc = GetLandCarryingCapacity(&hex);
 
 				for (int k = 0; k < hn->neighbors.size(); k++)
 				{
@@ -703,6 +707,8 @@ namespace Mandalin
 		glBindVertexArray(0);
 		triangles.clear();
 		hexNodes.clear();
+
+		std::cout << "Loaded hex geometry to buffer." << std::endl;
 	}
 
 	Planet::Planet(unsigned int worldSize)

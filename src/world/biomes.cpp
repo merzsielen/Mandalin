@@ -4,6 +4,50 @@
 
 namespace Mandalin
 {
+	unsigned int GetLandCarryingCapacity(Hex* hex)
+	{
+		/*
+			What determines the land carrying capacity
+			of a hex?
+
+			As a baseline, the average carrying capacity
+			of a tile should be 10,000 people. Oceanic
+			tiles have no carrying capacity, and mountains
+			have incredibly low capacity (say, 100).
+
+			For now, LLC is purely based on the biome.
+			These values are surely going to be changed.
+		*/
+
+		if (hex->biome == Biome::ocean) return 0;
+
+		if (hex->biome == Biome::mountain) return 100;
+
+		if (hex->biome == Biome::highlands) return 2000;
+
+		if (hex->biome == Biome::desert) return 1000;
+
+		if (hex->biome == Biome::steppe) return 6000;
+
+		if (hex->biome == Biome::savanna) return 5000;
+
+		if (hex->biome == Biome::dryforest) return 8000;
+
+		if (hex->biome == Biome::broadleafforest) return 10000;
+
+		if (hex->biome == Biome::rainforest) return 8000;
+
+		if (hex->biome == Biome::tundra) return 100;
+
+		if (hex->biome == Biome::taiga) return 1000;
+
+		if (hex->biome == Biome::mediterranean) return 15000;
+
+		if (hex->biome == Biome::oceanic) return 12000;
+
+		return 0;
+	}
+
 	unsigned int FindNearestLateralNeighbor(HexNode node, std::vector<HexNode> neighbors, glm::vec3 target)
 	{
 		float minDist = INFINITY;
