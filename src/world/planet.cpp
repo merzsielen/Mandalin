@@ -602,7 +602,7 @@ namespace Mandalin
 					0,
 					0,
 					0,
-					0,
+					{ 0, 0 },
 					0,
 					hn->tris,
 					c->triCount,

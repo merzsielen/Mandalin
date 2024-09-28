@@ -13,9 +13,9 @@ namespace Mandalin
 
 		std::vector<unsigned int>						languages;
 
-		// This pair is designated as the number of women and men (separated out) in a hex.
 		unsigned int									domain;
-		std::unordered_map<Hex*, std::pair<int, int>>	subpopulations;
+		// This double is the percentage of a hex that a population makes up.
+		std::unordered_map<Hex*, double>				subpopulations;
 	};
 }
 

@@ -37,44 +37,45 @@ namespace Mandalin
 	{
 		// Information about its chunk and its location
 		// within it.
-		unsigned int	chunk;
-		unsigned int	index;
+		unsigned int											chunk;
+		unsigned int											index;
 
 		// Biomes
-		Biome			biome;
-		unsigned int	biomeVariation;		// 0 - 4
+		Biome													biome;
+		unsigned int											biomeVariation;		// 0 - 4
 
 		// Region, Continent, & Plate
-		unsigned int	region;
-		unsigned int	continent;
-		unsigned int	tectonicPlate;
+		unsigned int											region;
+		unsigned int											continent;
+		unsigned int											tectonicPlate;
 
 		// Rainfall and Temperature
 		/*float			rainfall;
 		float			temperature;*/
 
 		// Majorities
-		unsigned int	populationID;
-		unsigned int	languageID;
+		unsigned int											populationID;
+		unsigned int											languageID;
 
 		// Variables
-		unsigned int	subpopCount;
-		unsigned int	population;
-		unsigned int	lcc;				// land carrying capacity
+		unsigned int											subpopCount;
+		std::pair<unsigned int, unsigned int>					population;			// < women, men >
+		unsigned int											Population() { return population.first + population.second; }
+		unsigned int											lcc;				// land carrying capacity
 
 		// Associated Tris
-		unsigned int	tris;
-		unsigned int	trisIndex;
+		unsigned int											tris;
+		unsigned int											trisIndex;
 		
 		// The chunk indices of each neighbor followed by
 		// their indices within that chunk.
-		std::vector<std::pair<unsigned int, unsigned int>>	neighbors;
+		std::vector<std::pair<unsigned int, unsigned int>>		neighbors;
 
 		// A multi-purpose bool that lets us know if we've
 		// already checked a hex when doing searches.
 		// We have to make sure to set this to false in any
 		// function that sets it to true.
-		int			checked;
+		int														checked;
 	};
 }
 

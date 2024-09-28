@@ -28,12 +28,13 @@ namespace Mandalin
 		/*----------------------------------------------------------------------*/
 		std::vector<Population>									populations;
 
-		void													MoveSubpopulation(Population* population, Hex* origin, Hex* destination, unsigned int women, unsigned int men);
+		void													MoveSubpopulation(Hex* origin, Hex* destination, unsigned int women, unsigned int men);
 		
-		void													ProximalMigration(Population* population, Hex* hex, unsigned int number);
+		void													ProximalMigration(Hex* hex, unsigned int nWomen, unsigned int nMen);
 		// void													MedialMigration(Population* population, Hex* hex, unsigned int number);
 		// void													DistalMigration(Population* population, Hex* hex, unsigned int number);
 
+		void													PopulationSplit(Population* population, Hex* origin);
 		void													OverflowPopulation(Hex* hex);
 		void													GrowPopulation(Hex* hex);
 		void													CheckPopulation(Hex* hex);

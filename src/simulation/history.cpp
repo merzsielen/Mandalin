@@ -7,44 +7,188 @@ namespace Mandalin
 	/*-------------------------------------------------*/
 	/* Populations                                     */
 	/*-------------------------------------------------*/
-	void History::MoveSubpopulation(Population* population, Hex* origin, Hex* destination, unsigned int women, unsigned int men)
+	void History::PopulationSplit(Population* population, Hex* origin)
 	{
-		if (population->subpopulations.find(destination) != population->subpopulations.end())
+		double ratio = ((rand() % 35 + 1) + 15.0) / 100.0;
+
+		unsigned int nHex = floor(population->domain * ratio);
+
+		if (nHex == 0) return;
+
+		int popID = rand() % 10000 + 1;
+
+		Population newPopulation =
 		{
-			population->subpopulations[destination].first += women;
-			population->subpopulations[destination].second += men;
-		}
-		else
+			popID,
+			{ 0 },
+			nHex,
+			{ }
+		};
+
+		population->domain -= nHex;
+		populations.push_back(newPopulation);
+
+		// Now, we're going to flood-fill a number of hexes from the origin
+		// and add these to our new population, removing them from the old one.
+
+		unsigned int number = 1;
+		origin->checked = 1;
+		std::vector<Hex*> searchArea = { origin };
+
+		while (true)
 		{
-			population->domain++;
-			destination->subpopCount++;
-			population->subpopulations[destination] = std::make_pair(women, men);
+			std::vector<Hex*> newSearchArea;
+
+			for (int i = 0; i < searchArea.size(); i++)
+			{
+				Hex* hex = searchArea[i];
+
+				for (int j = 0; j < hex->neighbors.size(); j++)
+				{
+					Hex* n = planet->GetHex(hex->neighbors[j].first, hex->neighbors[j].second);
+
+					if (n->checked != -1) continue;
+
+					if (population->subpopulations.find(n) != population->subpopulations.end() && number < nHex)
+					{
+						number++;
+						n->checked = 1;
+						newSearchArea.push_back(n);
+					}
+				}
+			}
+
+			for (int i = 0; i < newSearchArea.size(); i++) searchArea.push_back(newSearchArea[i]);
+
+			if (number >= nHex || newSearchArea.size() == 0) break;
 		}
 
-		population->subpopulations[origin].first -= women;
-		population->subpopulations[origin].second -= men;
-
-		if (population->subpopulations[origin].first <= 0) population->subpopulations[origin].first = 0;
-		if (population->subpopulations[origin].second <= 0) population->subpopulations[origin].second = 0;
-
-		if (population->subpopulations[origin].first == 0 && population->subpopulations[origin].second == 0)
+		for (int i = 0; i < searchArea.size(); i++)
 		{
-			population->domain--;
-			population->subpopulations.erase(origin);
-			origin->subpopCount--;
+			Hex* hex = searchArea[i];
+
+			newPopulation.subpopulations[hex] = population->subpopulations[hex];
+			population->subpopulations.erase(hex);
+
+			CheckPopulation(hex);
+
+			hex->checked = -1;
 		}
 
-		if ((int)origin->population - (int)(women + men) < 0) origin->population = 0;
-		else origin->population -= women + men;
+		populations.push_back(newPopulation);
+	}
 
-		destination->population += women + men;
+	void History::MoveSubpopulation(Hex* origin, Hex* destination, unsigned int women, unsigned int men)
+	{
+		// First, let's grab save some variables for later use.
+		unsigned int originOldPop = origin->Population();
+		unsigned int destinationOldPop = origin->Population();
+
+		// Now, we're just gonna plainly transfer the people.
+		destination->population.first += women;
+		destination->population.second += men;
+
+		if ((int)origin->population.first - (int)women < 0) origin->population.first = 0;
+		else origin->population.first -= women;
+
+		if ((int)origin->population.second - (int)men < 0) origin->population.second = 0;
+		else origin->population.second -= men;
+
+		// Now, we need to go through each population and
+		// update the percentage of each population that belongs
+		// to them.
+		double migrantPerc = (women + men) / destination->Population();
+		double dilution = migrantPerc / destination->subpopCount;
+		double concentration = migrantPerc / origin->subpopCount;
+
+		unsigned int blockedPops = 0;
+
+		for (int i = 0; i < populations.size(); i++)
+		{
+			Population* p = &populations[i];
+
+			if (p->subpopulations.find(destination) != p->subpopulations.end())
+			{
+				// If this population is a pre-existing one at the destination,
+				// we need to see how much its percentage of the population is
+				// diluted by the arrival of these new people.
+
+				p->subpopulations[destination] -= dilution;
+
+				if (p->subpopulations[destination] <= 0)
+				{
+					p->domain--;
+					destination->subpopCount--;
+					p->subpopulations.erase(destination);
+				}
+			}
+			
+			if (p->subpopulations.find(origin) != p->subpopulations.end())
+			{
+				// If this population is departing the origin, we need to see
+				// how much of a percentage they gain in the new location.
+
+				// If the population is too small, just don't migrate it
+				// and add it instead to the blocked pops.
+				if (p->subpopulations[origin] < 0.1)
+				{
+					blockedPops++;
+					continue;
+				}
+
+				if (p->subpopulations.find(destination) != p->subpopulations.end())
+				{
+					p->subpopulations[destination] += concentration;
+				}
+				else if (p->domain < Settings::DomainLimit - 1)
+				{
+					p->domain++;
+					destination->subpopCount++;
+					p->subpopulations[destination] = concentration;
+				}
+				else // if (p->domain == Settings::DomainLimit)
+				{
+					p->domain++;
+					destination->subpopCount++;
+					p->subpopulations[destination] = concentration;
+					PopulationSplit(p, origin);
+				}
+				//else
+				//{
+				//	// Here, we're dealing with a population that has reached
+				//	// its domain limit which causes some zaney weirdness. We
+				//	// have to go back and adjust the other populations to 
+				//	// account for the fact that we can't add this pop to these
+				//	// others.
+
+				//	blockedPops++;
+
+				//	// We need to check if ethnogenesis occurs which sometimes
+				//	// happens when a population spreads itself too thin.
+				//}
+			}
+		}
+
+		if (blockedPops > 0)
+		{
+			for (int i = 0; i < populations.size(); i++)
+			{
+				Population* p = &populations[i];
+
+				if (p->subpopulations.find(destination) != p->subpopulations.end())
+				{
+					p->subpopulations[destination] += (concentration / (double)blockedPops);
+				}
+			}
+
+		}
 
 		CheckPopulation(origin);
 		CheckPopulation(destination);
 	}
 
 	// Returns true if successful and false if a failure.
-	void History::ProximalMigration(Population* population, Hex* origin, unsigned int number)
+	void History::ProximalMigration(Hex* origin, unsigned int nWomen, unsigned int nMen)
 	{
 		/*
 			A proximal migration, as opposed to a medial or distal migration,
@@ -56,7 +200,9 @@ namespace Mandalin
 			an area of acceptable size or we can no longer add new tiles.
 		*/
 
-		origin->checked = (origin->lcc - origin->population);
+		unsigned int number = nWomen + nMen;
+
+		origin->checked = (origin->lcc - origin->Population());
 		std::vector<Hex*> searchArea;
 
 		int bestImmediateScore = 0;
@@ -67,7 +213,7 @@ namespace Mandalin
 
 			if (n->checked == -1 && n->biome != Biome::ocean)
 			{
-				n->checked = (n->lcc - n->population);
+				n->checked = (n->lcc - n->Population());
 				searchArea.push_back(n);
 				if (n->checked > bestImmediateScore) bestImmediateScore = n->checked;
 			}
@@ -94,7 +240,7 @@ namespace Mandalin
 
 						if (n->checked == -1 && n->biome != Biome::ocean)
 						{
-							n->checked = (n->lcc - n->population) - (500 * (i + 1));
+							n->checked = (n->lcc - n->Population()) - (500 * (i + 1));
 							newSearchAreas.push_back(n);
 						}
 					}
@@ -138,90 +284,73 @@ namespace Mandalin
 		int men = number - women;
 
 		// std::cout << "Moving " << women << " women and " << men << " men from (" << origin->chunk << " / " << origin->index << ") to (" << destination->chunk << ") / (" << destination->index << ")." << std::endl;
-		MoveSubpopulation(population, origin, destination, women, men);
+		if (women + men > 0) MoveSubpopulation(origin, destination, women, men);
 	}
 
 	void History::GrowPopulation(Hex* hex)
 	{
-		unsigned int newPopulation = 0;
+		unsigned int oldPop = hex->Population();
 
-		for (int i = 0; i < populations.size(); i++)
+		int dWomen = 0;
+		int dMen = 0;
+
+		if (hex->population.first != 0 && hex->population.second != 0)
+		{ 
+			double top = pow(((hex->population.first / (double)hex->population.second) - 1.0), 2);
+			double roiMod = exp(-top / 0.125);
+
+			int dPop = (Settings::BaseRateOfNaturalIncrease * roiMod) * oldPop * (1.0 - ((float)oldPop / hex->lcc));
+
+			double ratio = 0.5 + ((rand() % 10 + 1) / 100.0);
+
+			dWomen = floor(dPop * ratio);
+			dMen = dPop - dWomen;
+		}
+		else
 		{
-			Population* p = &populations[i];
+			int dPop = Settings::BaseRateOfNaturalIncrease * oldPop * (1.0 - ((float)oldPop / hex->lcc));
 
-			if (p->subpopulations.find(hex) != p->subpopulations.end())
+			if (hex->population.first != 0 && dWomen < 0)
 			{
-				std::pair<int, int>* woMen = &p->subpopulations[hex];
-
-				int pop = woMen->first + woMen->second;
-
-				// I'm adding this here just to be safe.
-				if (pop == 0)
-				{
-					p->subpopulations.erase(hex);
-					hex->subpopCount--;
-					continue;
-				}
-
-				double perc = pop / (double)hex->population;
-
-				double roiMod = 1.0;
-
-				if (woMen->first == 0 || woMen->second == 0) roiMod = 0.0f;
-				else
-				{
-					// The Rate of Increase modifier falls on a Gaussian
-					// Distribution where the peak is at a 50 / 50 male-female
-					// ratio. Forgive me for being so binary here.
-
-					// In this GD, a = 1; b = 1; c = 0.25
-
-					double top = pow(((woMen->first / (double)woMen->second) - 1.0), 2);
-
-					roiMod = exp(-top / 0.125);
-				}
-
-				if (roiMod >= 1.0) roiMod = 1.0;
-				else if (roiMod <= 0.001) roiMod = 0.001;
-
-				int dPop = (Settings::BaseRateOfNaturalIncrease * roiMod) * pop * (1.0 - (pop / (perc * hex->lcc)));
-
-				double ratio = 0.5 + ((rand() % 10 + 1) / 100.0);
-
-				int dWomen = floor(dPop * ratio);
-				int dMen = dPop - dWomen;
-
-				woMen->first += dWomen;
-				woMen->second += dMen;
-
-				if (woMen->first < 0) woMen->first = 0;
-				if (woMen->second < 0) woMen->second = 0;
-
-				pop = woMen->first + woMen->second;
-
-				if (pop == 0)
-				{
-					p->subpopulations.erase(hex);
-					p->domain--;
-					hex->subpopCount--;
-				}
-
-				newPopulation += pop;
+				dWomen = dPop;
+			}
+			else if (hex->population.second != 0 && dMen < 0)
+			{
+				dMen = dPop;
 			}
 		}
 
-		// std::cout << "Hex population grew from " << (int)hex->population << " to " << newPopulation << "." << std::endl;
-		hex->population = newPopulation;
-		CheckPopulation(hex);
+		if ((int)hex->population.first + dWomen <= 0) hex->population.first = 0;
+		else hex->population.first += dWomen;
+
+		if ((int)hex->population.second + dMen <= 0) hex->population.second = 0;
+		else hex->population.second += dMen;
+
+		if (hex->Population() <= 0)
+		{
+			for (int i = 0; i < populations.size(); i++)
+			{
+				Population* p = &populations[i];
+
+				if (p->subpopulations.find(hex) != p->subpopulations.end())
+				{
+					p->domain--;
+					p->subpopulations.erase(hex);
+				}
+			}
+
+			hex->subpopCount = 0;
+			CheckPopulation(hex);
+		}
 	}
 
 	void History::CheckPopulation(Hex* hex)
 	{
 		// If this hex is not populated, we made a mistake by calling this.
-		if (hex->population == 0) planet->SetPopulation(hex->chunk, hex->index, 0);
+		if (hex->Population() == 0) planet->SetPopulation(hex->chunk, hex->index, 0);
 
 		// Otherwise, we've gotta see who is the biggest.
-		unsigned int largestSubpopulation = 0;
+		double largestSubpopulation = 0;
 		unsigned int largestSubpopID = 0;
 
 		for (int i = 0; i < populations.size(); i++)
@@ -230,13 +359,11 @@ namespace Mandalin
 
 			if (p->subpopulations.find(hex) != p->subpopulations.end())
 			{
-				std::pair<int, int>* woMen = &p->subpopulations[hex];
+				double subPerc = p->subpopulations[hex];
 
-				unsigned int pop = woMen->first + woMen->second;
-
-				if (pop > largestSubpopulation)
+				if (subPerc > largestSubpopulation)
 				{
-					largestSubpopulation = pop;
+					largestSubpopulation = subPerc;
 					largestSubpopID = p->id;
 				}
 			}
@@ -251,61 +378,16 @@ namespace Mandalin
 	void History::OverflowPopulation(Hex* hex)
 	{
 		// We're going to trigger a migration.
-		unsigned int n = ceil(hex->population - (hex->lcc * 0.85));
+		unsigned int n = ceil(hex->Population() - (hex->lcc * 0.85));
+		double ratio = 0.5 + ((rand() % 10 + 1) / 100.0);
 
-		// The question is, how do we decide who
-		// migrates out? Ideally, this would be some
-		// fancy calculation, but for now we'll just
-		// grab from random subpopulations until we
-		// get enough people.
+		unsigned int nWomen = floor(n * ratio);
+		unsigned int nMen = n - nWomen;
 
-		// The number of subpopulations that will migrate.
-		unsigned int msn = rand() % hex->subpopCount + 1;
-
-		while (true)
-		{
-			if (msn == 0) break;
-			else if (ceil(n / (double)msn) <= 0) msn--;
-			else break;
-		}
-
-		if (msn <= 0) return;
-
-		n = ceil(n / (double)msn);
-
-		// I don't love this, but oh well.
-		std::random_device rd;
-		std::mt19937 g(rd());
-		std::vector<int> rawValues;
-		for (int k = 0; k < hex->subpopCount; k++) rawValues.push_back(k);
-		std::shuffle(rawValues.begin(), rawValues.end(), g);
-		std::vector<int> values;
-		for (int k = 0; k < msn; k++) values.push_back(rawValues[k]);
-		unsigned int counted = 0;
-
-		for (int l = 0; l < populations.size(); l++)
-		{
-			Population* p = &populations[l];
-
-			if (p->subpopulations.find(hex) != p->subpopulations.end())
-			{
-				bool inValues = false;
-				for (int m = 0; m < values.size(); m++)
-				{
-					if (values[m] == counted)
-					{
-						inValues = true;
-						break;
-					}
-				}
-
-				if (!inValues) continue;
-				if (p->domain >= Settings::DomainLimit) continue;
-
-				// std::cout << "Triggering a migration of " << n << " people from a population of " << hex->population << std::endl;
-				ProximalMigration(p, hex, n);
-			}
-		}
+		// For now, this only involves proximal migrations,
+		// but at some point I'd like to add medial and distal
+		// migrations here as well.
+		ProximalMigration(hex, nWomen, nMen);
 	}
 
 	void History::UpdatePopulation()
@@ -327,7 +409,7 @@ namespace Mandalin
 			{
 				Hex* h = &c->hexes[j];
 
-				if (h->population != 0)
+				if (h->population.first != 0 || h->population.second != 0)
 				{
 					GrowPopulation(h);
 
@@ -338,7 +420,7 @@ namespace Mandalin
 					// double ran = rand() % 100 + 1;
 					double r = (rand() % 15 + 1) / 100.0;
 
-					if ((h->population / (double)h->lcc >= 1.0 - r)) // && ran > 75)
+					if ((h->Population() / (double)h->lcc >= 1.0 - r)) // && ran > 75)
 					{
 						OverflowPopulation(h);
 					}
@@ -407,7 +489,6 @@ namespace Mandalin
 			attempts = 0;
 			if (hex->biome == Biome::ocean) continue;
 
-
 			int popID = rand() % 10000 + 1;
 
 			Population pop =
@@ -418,8 +499,9 @@ namespace Mandalin
 				{ }
 			};
 
-			pop.subpopulations[hex] = std::make_pair(50, 50);
-			hex->population += 100;
+			pop.subpopulations[hex] = 1.0;
+			hex->population.first += 50;
+			hex->population.second += 50;
 			hex->subpopCount++;
 
 			populations.push_back(pop);

@@ -33,11 +33,11 @@ namespace Mandalin
 		/*-------------------------------------------------*/
 		/* Populations                                     */
 		/*-------------------------------------------------*/
-		static constexpr unsigned int	NumberOfStartingPopulations = 100;
+		static constexpr unsigned int	NumberOfStartingPopulations = 5;
 
 		static constexpr float			BaseRateOfNaturalIncrease = 1.0f;
 		static constexpr float			LandCarryingCapacityThreshold = 0.9f;
-		static constexpr unsigned int	DomainLimit = 50;
+		static constexpr unsigned int	DomainLimit = 30;
 
 		static constexpr unsigned int	ProximalMigrationSearchDistance = 2;
 
@@ -49,7 +49,7 @@ namespace Mandalin
 		/*-------------------------------------------------*/
 		/* Planet                                          */
 		/*-------------------------------------------------*/
-		static constexpr unsigned int	WorldSize = 4;
+		static constexpr unsigned int	WorldSize = 5;
 		static constexpr unsigned int	RegionCount = 100 * WorldSize;
 		static constexpr unsigned int	ContinentCount = 20 * WorldSize;
 		static constexpr unsigned int	TectonicPlateCount = 2 * WorldSize;
